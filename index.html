@@ -112,11 +112,18 @@ ruby.char-ruby rt { font-size: 0.68rem; color: #0369a1; font-weight: 700; line-h
         </div>
     </div>
 
-    <div id="hud-stage-mission" class="hidden">
-        <span id="ui-mission-prefix"></span><strong id="mission-lesson-title"></strong>
-        <span id="mission-read-status"></span><span id="mission-quiz-status"></span>
-        <span id="mission-gem-status"></span><span id="mission-chest-status"></span><span id="mission-write-status"></span>
+<!-- 📋 畫面左側直立式「本島闖關進度面板」（平板上垂直排列不擁擠，點擊可查看或開啟句型） -->
+<div id="hud-stage-mission" class="fixed left-2 top-16 z-20 ac-panel p-2.5 flex flex-col gap-1.5 pointer-events-auto bg-amber-50/95 text-xs font-bold text-amber-900 shadow-xl w-36 sm:w-40 transition-opacity duration-300">
+    <div class="text-[11px] font-black text-amber-950 border-b border-amber-300 pb-1 flex items-center justify-between">
+        <span id="ui-mission-prefix">🎯 本島任務</span>
+        <strong id="mission-lesson-title" class="text-rose-700 truncate">第一課</strong>
     </div>
+    <span id="mission-read-status" class="px-2 py-1 rounded-lg bg-sky-100 text-sky-900 text-left truncate">📘 課文 (自由選讀)</span>
+    <span id="mission-quiz-status" class="px-2 py-1 rounded-lg bg-purple-100 text-purple-800 text-left truncate">1️⃣❓ 問題 0/3</span>
+    <span id="mission-gem-status" class="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-left truncate">2️⃣🧚 生詞 0/18</span>
+    <span id="mission-chest-status" onclick="openSentencePuzzleModal(currentLesson ? currentLesson.id : gameState.unlockedMaxLesson)" class="px-2 py-1 rounded-lg bg-teal-100 text-teal-900 border border-teal-400 cursor-pointer hover:bg-teal-200 text-left truncate" title="點擊挑戰本課課文句子重組">3️⃣🧩 句型 0/5</span>
+    <span id="mission-write-status" class="px-2 py-1 rounded-lg bg-blue-100 text-blue-800 text-left truncate">4️⃣🖌️ 生字 0/8</span>
+</div>
 
     <div class="flex flex-wrap items-center gap-1.5 pointer-events-auto">
         <select id="teleport-select" onchange="teleportToZone(this.value); this.blur();"
@@ -286,12 +293,14 @@ ruby.char-ruby rt { font-size: 0.68rem; color: #0369a1; font-weight: 700; line-h
             </div>
         </div>
 
-        <div class="mt-2.5 pt-2 border-t border-amber-200">
-            <div id="ui-dlg-vocab-tip" class="text-xs font-bold text-amber-800 mb-1">💡 點擊下方生詞可預覽字卡、部首筆畫與造句（讀完課文先回答夥伴問題，再在島上追捕「🧚 生詞小精靈」）：</div>
-            <div id="dlg-vocab-chips" class="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto"></div>
+<!-- 已隱藏生詞與生字列（保留 ID 避免 JS 報錯，內容收納於右上角 📖 圖鑑中） -->
+        <div class="hidden">
+            <div id="ui-dlg-vocab-tip"></div>
+            <div id="dlg-vocab-chips"></div>
+            <div id="dlg-write-chars-row"></div>
         </div>
-        <div class="mt-2 pt-2 border-t border-amber-200 flex flex-wrap items-center justify-between gap-2">
-            <div class="flex flex-wrap items-center gap-1" id="dlg-write-chars-row"></div>
+        <div class="mt-2.5 pt-2 border-t border-amber-200 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-amber-700">💡 點擊課文畫底線的生詞或右上角「📖 圖鑑」可查看字卡</span>
             <div class="flex items-center gap-2 ml-auto">
                 <span id="dlg-progress-text" class="text-xs font-bold text-amber-700">1 / 5</span>
                 <button onclick="prevDialogLine()" id="btn-prev-line" class="ac-btn bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold px-3 py-2 rounded-xl text-sm">◀ 上一句</button>
@@ -2306,7 +2315,7 @@ function getKevin87Texture() {
     return jersey87TexCache;
 }
 
-// 🎨 100% 依第七冊人物介紹圖片打造的 3D 角色建模引擎
+// 🎨 100% 依第七冊圖片打造的 3D 角色建模引擎（含華中爸媽 ＆ 明真爸媽專屬造型）
 function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = 'none', bustOnly = false) {
     const group = new THREE.Group();
     const isGirlPlayer = (role === 'player' && gameState.playerGender === 'girl');
@@ -2326,12 +2335,18 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         huaguo:   {shirt:0xdc2626, pants:0xd6d3d1, hair:0x451a03, skin:0xffdcb1, glasses:false, hairStyle:'short', redChevronTee:true},
         // 7. 凱文 (Kevin)：健康小麥膚色、黑色飛機頭 (Undercut)、紫色 87 號球衣
         kevin:    {shirt:0x6d28d9, pants:0x1e293b, hair:0x111827, skin:0xd99b66, glasses:false, hairStyle:'undercut', jersey87:true},
-        // 寶拉 (Paula)：第二課巴拿馬新同學，深棕馬尾、天藍洋裝
-        paula:    {shirt:0x0ea5e9, pants:0x0284c7, hair:0x27170c, skin:0xf3c69f, glasses:false, hairStyle:'ponytail', femaleBlush:true},
-        // 老師、爸爸、媽媽、店員、Sophia老師
-        teacher:  {shirt:0x8b5a2b, pants:0x3e2723, hair:0x27170c, skin:0xffdcb1, glasses:false, hairStyle:'long', femaleBlush:true},
-        dad:      {shirt:0x65a30d, pants:0x1e293b, hair:0x27170c, skin:0xffdcb1, glasses:true, hairStyle:'short'},
-        mom:      {shirt:0xf472b6, pants:0x1d4ed8, hair:0x3b2314, skin:0xffdcb1, glasses:false, hairStyle:'long', femaleBlush:true},
+        // 寶拉 (Paula)：深棕波浪捲長髮、白T恤配淺藍口袋吊帶褲（無背包）
+        paula:    {shirt:0xffffff, pants:0x60a5fa, hair:0x3b1d0a, skin:0xf5cba7, glasses:false, hairStyle:'curly_long', paulaOveralls:true, femaleBlush:true},
+        // 老師 (Teacher)：深棕微捲鮑伯短髮配齊瀏海、薄荷綠白玫瑰洋裝、米白短版小外套
+        teacher:  {shirt:0x5cc9a7, pants:0x5cc9a7, hair:0x3d1c0a, skin:0xffdcb1, glasses:false, hairStyle:'wavy_bob', teacherRoseDress:true, femaleBlush:true},
+        // 華中的爸爸 (Dad - L3 & L7)：兩鬢灰白髮絲、八字小鬍子、灰卡其Polo衫配深棕褲
+        dad:      {shirt:0x8d7b68, pants:0x4a2c11, hair:0x3b1d0a, skin:0xffdcb1, glasses:false, hairStyle:'short', grayTemples:true, mustache:true, huazhongDadPolo:true},
+        // 華中的媽媽 (Mom - L3 & L7)：深棕蓬鬆捲髮、方框眼鏡、桃紅連身洋裝
+        mom:      {shirt:0xe11d48, pants:0xbe123c, hair:0x3b1d0a, skin:0xffdcb1, glasses:true, hairStyle:'wavy_bob', huazhongMomDress:true, femaleBlush:true},
+        // 明真的爸爸 (Jane's Dad - L6)：年輕深棕微翹短髮、焦糖棕灰領口袋Polo衫、金扣皮帶配卡其褲
+        mingzhen_dad: {shirt:0x9a3412, pants:0xc2a675, hair:0x3b1d0a, skin:0xffdcb1, glasses:false, hairStyle:'spiky', mingzhenDadPolo:true},
+// 明真的媽媽 (Jane's Mom - L6)：深棕旁分及肩直髮、米卡其色口袋外套、淺藍白領襯衫、深藍長褲配銀扣黑皮帶
+        mingzhen_mom: {shirt:0xb5a895, pants:0x1e2540, hair:0x3b1d0a, skin:0xffdcb1, glasses:false, hairStyle:'side_part_bob', mingzhenMomSuit:true, femaleBlush:true},
         clerk:    {shirt:0x0284c7, pants:0x0f172a, hair:0x27170c, skin:0xffdcb1, glasses:false, hairStyle:'ponytail', whiteCollar:true},
         merchant: {shirt:0xAFB3B8, pants:0xffffff, hair:0x3b2314, skin:0xffdcb1, glasses:false, hairStyle:'long', whiteCollar:true, femaleBlush:true}
     };
@@ -2343,8 +2358,8 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         leftLeg = new THREE.Mesh(legGeo, legMat); leftLeg.position.set(-0.22, 0.35, 0);
         rightLeg = new THREE.Mesh(legGeo, legMat); rightLeg.position.set(0.22, 0.35, 0);
         group.add(leftLeg, rightLeg);
-        if (isGirlPlayer || cfg.plaidDress || cfg.floralTop || role === 'paula') {
-            const skirt = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.32, 0.58), legMat);
+        if (isGirlPlayer || cfg.plaidDress || cfg.floralTop || cfg.teacherRoseDress || cfg.huazhongMomDress || role === 'paula') {
+            const skirt = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.36, 0.58), legMat);
             skirt.position.set(0, 0.68, 0);
             group.add(skirt);
         }
@@ -2354,7 +2369,6 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
 
     // 角色專屬服裝細節還原
     if (cfg.annaHoodie) {
-        // 安娜：紅藍條紋內搭衫與草綠開襟外套
         const innerMat = new THREE.MeshLambertMaterial({ color: 0x1d4ed8 });
         const innerShirt = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.92, 0.52), innerMat);
         innerShirt.position.set(0, 1.15, 0.01);
@@ -2367,7 +2381,6 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         });
     }
     if (cfg.plaidDress) {
-        // 麗安：紅格紋無袖洋裝線條
         const lineMat = new THREE.MeshBasicMaterial({ color: 0xfca5a5 });
         [-0.22, 0, 0.22].forEach(lx => {
             const vLine = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.95, 0.52), lineMat);
@@ -2381,7 +2394,6 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         });
     }
     if (cfg.floralTop) {
-        // 明真：白底粉紅小花朵上衣
         const flowerMat = new THREE.MeshBasicMaterial({ color: 0xf472b6 });
         [[-0.22, 1.35], [0.22, 1.32], [0, 1.05], [-0.2, 0.88], [0.24, 0.92]].forEach(([fx, fy]) => {
             const flw = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.53), flowerMat);
@@ -2389,8 +2401,82 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
             group.add(flw);
         });
     }
+    if (cfg.teacherRoseDress) {
+        const boleroMat = getMcMaterial(0xfff1e6, 8);
+        const boleroL = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.58, 0.54), boleroMat);
+        boleroL.position.set(-0.32, 1.34, 0.01);
+        const boleroR = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.58, 0.54), boleroMat);
+        boleroR.position.set(0.32, 1.34, 0.01);
+        const boleroBack = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.56, 0.12), boleroMat);
+        boleroBack.position.set(0, 1.35, -0.22);
+        group.add(boleroL, boleroR, boleroBack);
+
+        const roseWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const roseCoreMat = new THREE.MeshBasicMaterial({ color: 0xe2e8f0 });
+        const stemGreenMat = new THREE.MeshBasicMaterial({ color: 0x15803d });
+        [[0, 1.26, 0.26], [-0.14, 0.98, 0.26], [0.18, 0.92, 0.26], [-0.24, 0.68, 0.30], [0.06, 0.65, 0.30], [0.28, 0.72, 0.30]].forEach(([rx, ry, rz]) => {
+            const rose = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), roseWhiteMat);
+            rose.scale.set(1.1, 1.1, 0.45);
+            rose.position.set(rx, ry, rz);
+            const core = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.03), roseCoreMat);
+            core.position.set(rx, ry, rz + 0.02);
+            const stem = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.09, 0.02), stemGreenMat);
+            stem.position.set(rx + 0.03, ry - 0.06, rz);
+            stem.rotation.z = -0.35;
+            group.add(rose, core, stem);
+        });
+    }
+    if (cfg.huazhongDadPolo) {
+        // 華中爸爸：淺卡其翻領與黑色皮帶
+        const collar = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.14, 0.53), new THREE.MeshBasicMaterial({ color: 0xc2a675 }));
+        collar.position.set(0, 1.56, 0.01);
+        const belt = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.10, 0.52), new THREE.MeshBasicMaterial({ color: 0x111827 }));
+        belt.position.set(0, 0.72, 0.01);
+        group.add(collar, belt);
+    }
+    if (cfg.huazhongMomDress) {
+        // 華中媽媽：桃紅洋裝V領與深桃紅腰封線條
+        const waistBand = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.12, 0.52), new THREE.MeshBasicMaterial({ color: 0x9f1239 }));
+        waistBand.position.set(0, 0.96, 0.01);
+        group.add(waistBand);
+    }
+    if (cfg.mingzhenDadPolo) {
+        // 明真爸爸：淺灰翻領、左胸深棕口袋、棕色皮帶配金色方扣
+        const greyMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8 });
+        const collar = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.14, 0.53), greyMat);
+        collar.position.set(0, 1.56, 0.01);
+        const placket = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.28, 0.54), greyMat);
+        placket.position.set(0, 1.44, 0.01);
+        const pocket = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.53), new THREE.MeshBasicMaterial({ color: 0x5c240a }));
+        pocket.position.set(0.22, 1.24, 0.015);
+        const belt = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.10, 0.52), new THREE.MeshBasicMaterial({ color: 0x451a03 }));
+        belt.position.set(0, 0.72, 0.01);
+        const goldBuckle = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.54), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+        goldBuckle.position.set(0, 0.72, 0.015);
+        group.add(collar, placket, pocket, belt, goldBuckle);
+    }
+if (cfg.mingzhenMomSuit) {
+        // 明真媽媽：中間淺冰藍襯衫、白色V型翻領、黑色皮帶配銀色方扣、兩側外套口袋
+        const innerShirt = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.92, 0.52), new THREE.MeshBasicMaterial({ color: 0xe0f2fe }));
+        innerShirt.position.set(0, 1.15, 0.01);
+        const centerLine = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.75, 0.53), new THREE.MeshBasicMaterial({ color: 0xbae6fd }));
+        centerLine.position.set(0, 1.10, 0.015);
+        // 白色翻領
+        const collarMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const collarL = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.14, 0.54), collarMat); collarL.position.set(-0.12, 1.54, 0.02); collarL.rotation.z = -0.3;
+        const collarR = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.14, 0.54), collarMat); collarR.position.set(0.12, 1.54, 0.02); collarR.rotation.z = 0.3;
+        // 外套兩側口袋
+        const pocketMat = getMcMaterial(0x9c8e7b, 8);
+        const pocketL = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.24, 0.53), pocketMat); pocketL.position.set(-0.30, 0.88, 0.015);
+        const pocketR = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.24, 0.53), pocketMat); pocketR.position.set(0.30, 0.88, 0.015);
+        // 黑色腰帶與銀色方扣
+        const belt = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.09, 0.53), new THREE.MeshBasicMaterial({ color: 0x111827 }));
+        belt.position.set(0, 0.72, 0.015);
+        const silverBuckle = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.11, 0.55), new THREE.MeshBasicMaterial({ color: 0xe2e8f0 }));
+        silverBuckle.position.set(0, 0.72, 0.02);
+        group.add(innerShirt, centerLine, collarL, collarR, pocketL, pocketR, belt, silverBuckle);
+    }
     if (cfg.greenGraphicTee) {
-        // 家傑：綠色T恤胸前白綠幾何圖騰
         const patch = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.48, 0.52), new THREE.MeshBasicMaterial({ color: 0xffffff }));
         patch.position.set(0, 1.2, 0.01);
         const wave = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.54), getMcMaterial(0x15803d, 10));
@@ -2398,7 +2484,6 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         group.add(patch, wave);
     }
     if (cfg.orangePolo) {
-        // 華中：橘黃色 Polo 衫配紅色領口與袖口邊
         const redTrim = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
         const collar = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.14, 0.53), redTrim);
         collar.position.set(0, 1.56, 0.01);
@@ -2407,7 +2492,6 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         group.add(collar, placket);
     }
     if (cfg.redChevronTee) {
-        // 華國：紅色上衣配深紅胸前紋路與白領邊
         const vCollar = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.14, 0.53), new THREE.MeshBasicMaterial({ color: 0xffffff }));
         vCollar.position.set(0, 1.56, 0.01);
         const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.16, 0.52), new THREE.MeshBasicMaterial({ color: 0x991b1b }));
@@ -2415,17 +2499,50 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         group.add(vCollar, stripe);
     }
     if (cfg.jersey87) {
-        // 凱文：紫色 87 號球衣正面號碼牌
         const numPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.68), new THREE.MeshBasicMaterial({ map: getKevin87Texture() }));
         numPlane.position.set(0, 1.16, 0.26);
         group.add(numPlane);
     }
+    if (cfg.paulaOveralls) {
+        const overallMat = getMcMaterial(0x7dd3fc, 10);
+        const pocketTrimMat = new THREE.MeshBasicMaterial({ color: 0x0284c7 });
+        const buckleMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8 });
+
+        const lowerBib = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.52, 0.52), overallMat);
+        lowerBib.position.set(0, 0.92, 0.01);
+        const chestBib = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.38, 0.53), overallMat);
+        chestBib.position.set(0, 1.25, 0.01);
+
+        const pocketBorder = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.28, 0.54), pocketTrimMat);
+        pocketBorder.position.set(0, 1.22, 0.015);
+        const pocketInner = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.55), overallMat);
+        pocketInner.position.set(0, 1.22, 0.018);
+
+        [-0.22, 0.22].forEach(sx => {
+            const strap = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.28, 0.53), overallMat);
+            strap.position.set(sx, 1.50, 0.01);
+            const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.55), buckleMat);
+            buckle.position.set(sx, 1.42, 0.015);
+            group.add(strap, buckle);
+        });
+
+        group.add(lowerBib, chestBib, pocketBorder, pocketInner);
+    }
 
     const skinMat = new THREE.MeshLambertMaterial({ color: cfg.skin || 0xffdcb1 });
-    const armMat = cfg.plaidDress ? skinMat : bodyMat;
+  const armMat = (cfg.plaidDress || cfg.teacherRoseDress || cfg.paulaOveralls || cfg.huazhongMomDress || cfg.huazhongDadPolo || cfg.mingzhenDadPolo || cfg.mingzhenMomSuit) ? skinMat : bodyMat;
     const armGeo = new THREE.BoxGeometry(0.28, 0.85, 0.28);
     const leftArm = new THREE.Mesh(armGeo, armMat); leftArm.position.set(-0.62, 1.15, 0);
     const rightArm = new THREE.Mesh(armGeo, armMat); rightArm.position.set(0.62, 1.15, 0);
+    if (cfg.teacherRoseDress || cfg.paulaOveralls || cfg.huazhongMomDress || cfg.huazhongDadPolo || cfg.mingzhenDadPolo || cfg.mingzhenMomSuit) {
+        let sleeveColor = shirtColor;
+        if (cfg.paulaOveralls) sleeveColor = 0xffffff;
+        else if (cfg.teacherRoseDress) sleeveColor = 0xfff1e6;
+        const sleeveMat = getMcMaterial(sleeveColor, 8);
+        const sL = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.46, 0.32), sleeveMat); sL.position.set(0, 0.22, 0);
+        const sR = sL.clone();
+        leftArm.add(sL); rightArm.add(sR);
+    }
     group.add(leftArm, rightArm);
 
     if (cfg.whiteCollar) {
@@ -2442,11 +2559,81 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
     const backHair = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.65, 0.2), hairMat); backHair.position.set(0, 2.1, -0.38);
     group.add(topHair, backHair);
 
+    if (cfg.grayTemples) {
+        // 華中爸爸：兩鬢灰白色髮絲
+        const grayMat = new THREE.MeshBasicMaterial({ color: 0xcbd5e1 });
+        [-0.45, 0.45].forEach(gx => {
+            const temple = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.28, 0.36), grayMat);
+            temple.position.set(gx, 2.22, 0.08);
+            group.add(temple);
+        });
+    }
+    if (cfg.mustache) {
+        // 華中爸爸：濃密八字小鬍子
+        const mL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.06, 0.05), hairMat); mL.position.set(-0.08, 1.95, 0.465); mL.rotation.z = 0.2;
+        const mR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.06, 0.05), hairMat); mR.position.set(0.08, 1.95, 0.465); mR.rotation.z = -0.2;
+        group.add(mL, mR);
+    }
+
     if (cfg.hairStyle === 'long' || cfg.hairStyle === 'girl_player') {
         const sideL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.78, 0.42), hairMat); sideL.position.set(-0.44, 1.9, -0.08);
         const sideR = sideL.clone(); sideR.position.x = 0.44; group.add(sideL, sideR);
     }
-    if (cfg.hairStyle === 'ponytail') {
+    if (cfg.hairStyle === 'curly_long') {
+        [-0.46, 0.46].forEach(sideX => {
+            [2.25, 1.98, 1.72, 1.48].forEach((cy, idx) => {
+                const waveOffset = (idx % 2 === 0 ? 1 : -1) * 0.05;
+                const curl = new THREE.Mesh(new THREE.SphereGeometry(0.24 - idx * 0.015, 10, 10), hairMat);
+                curl.scale.set(0.95, 0.85, 1.15);
+                curl.position.set(sideX + (sideX < 0 ? -waveOffset : waveOffset), cy, -0.02);
+                group.add(curl);
+            });
+        });
+        [2.2, 1.85, 1.52].forEach((by, idx) => {
+            const backCurl = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.32, 0.28), hairMat);
+            backCurl.position.set(0, by, -0.40 - (idx % 2) * 0.04);
+            group.add(backCurl);
+        });
+        [-0.16, 0.16].forEach(bx => {
+            const bang = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.22, 0.06), hairMat);
+            bang.position.set(bx, 2.34, 0.46);
+            bang.rotation.z = bx < 0 ? 0.25 : -0.25;
+            group.add(bang);
+        });
+    }
+    if (cfg.hairStyle === 'wavy_bob') {
+        [-0.46, 0.46].forEach(sideX => {
+            const upperBob = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 10), hairMat);
+            upperBob.scale.set(0.85, 1.25, 1.2);
+            upperBob.position.set(sideX, 2.15, -0.02);
+            const lowerFlare = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), hairMat);
+            lowerFlare.scale.set(0.95, 0.8, 1.15);
+            lowerFlare.position.set(sideX * 1.12, 1.86, 0.02);
+            group.add(upperBob, lowerFlare);
+        });
+        const backBob = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.62, 0.28), hairMat);
+        backBob.position.set(0, 2.02, -0.38);
+        group.add(backBob);
+        [-0.28, -0.14, 0, 0.14, 0.28].forEach((bx, idx) => {
+            const bang = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.22, 0.08), hairMat);
+            bang.position.set(bx, 2.34, 0.45);
+            bang.rotation.z = (idx - 2) * 0.06;
+            group.add(bang);
+        });
+    }
+if (cfg.hairStyle === 'side_part_bob') {
+        // 明真媽媽：大旁分斜瀏海＋左側塞耳後、右側順直垂落及肩
+        const sweepBang = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.20, 0.10), hairMat);
+        sweepBang.position.set(0.12, 2.38, 0.45);
+        sweepBang.rotation.z = -0.18;
+        const rightSideHair = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.85, 0.52), hairMat);
+        rightSideHair.position.set(0.44, 1.98, 0.04);
+        const leftTuckedHair = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.78, 0.36), hairMat);
+        leftTuckedHair.position.set(-0.43, 1.98, -0.12);
+        const earL = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.22, 0.14), skinMat);
+        earL.position.set(-0.46, 2.08, 0.12);
+        group.add(sweepBang, rightSideHair, leftTuckedHair, earL);
+    }    if (cfg.hairStyle === 'ponytail') {
         const scrunchy = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.18), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
         scrunchy.position.set(0.32, 2.28, -0.44);
         const tail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.58, 0.28), hairMat);
@@ -2459,7 +2646,6 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         group.add(spike1, spike2);
     }
     if (cfg.hairStyle === 'undercut') {
-        // 凱文招牌前翹飛機頭
         const pompadour = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.34, 0.55), hairMat);
         pompadour.position.set(0, 2.62, 0.24); pompadour.rotation.x = -0.25;
         group.add(pompadour);
@@ -2491,7 +2677,7 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         });
     }
     if (cfg.glasses) {
-        const frameColor = cfg.roundBlueGlasses ? 0x1e3a8a : 0x1e293b;
+        const frameColor = cfg.roundBlueGlasses ? 0x1e3a8a : 0x3b1d0a;
         const frameMat = new THREE.MeshBasicMaterial({ color: frameColor });
         const lensMat = new THREE.MeshBasicMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.22, depthWrite: false });
         [-0.2, 0.2].forEach(cx => {
@@ -2505,7 +2691,6 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
         const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 0.03), frameMat); bridge.position.set(0, 2.12, 0.485); group.add(bridge);
     }
 
-    // 12 款過關新衣專屬立體頭飾與服裝配件
     if (hatType === 'cap') {
         const capVisor = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 0.35), new THREE.MeshLambertMaterial({ color: 0x1d4ed8 }));
         capVisor.position.set(0, 2.4, 0.45);
@@ -2561,35 +2746,130 @@ function buildCharacterMesh(role = 'player', customColor = 0xe11d48, hatType = '
 
     group.userData = { leftLeg, rightLeg, leftArm, rightArm };
     return group;
-}
-
-// 💵 第 9 課 & 第 12 課：繪製新臺幣一百元與美金一元巨型紀念鈔票貼圖
+}// 💵 第 9 課：繪製帶有「孫中山先生」與「華盛頓先生」人像的巨型鈔票貼圖
 function buildBanknoteDisplayMesh(type = 'ntd') {
-    const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+    const c = document.createElement('canvas'); c.width = 320; c.height = 160;
     const ctx = c.getContext('2d');
+
     if (type === 'ntd') {
-        ctx.fillStyle = '#fecaca'; ctx.fillRect(0, 0, 256, 128);
-        ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 8; ctx.strokeRect(6, 6, 244, 116);
-        ctx.fillStyle = '#991b1b'; ctx.font = '900 22px "Noto Sans TC", sans-serif';
-        ctx.fillText('中華民國 新臺幣', 18, 34);
-        ctx.font = '900 38px "Noto Sans TC", sans-serif';
-        ctx.fillText('壹佰圓 100', 18, 88);
-        ctx.fillStyle = '#b91c1c'; ctx.beginPath(); ctx.arc(205, 64, 34, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ffffff'; ctx.font = '900 18px "Noto Sans TC", sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('孫中山', 205, 70);
+        // 🇹🇼 新臺幣壹佰圓底色與雕花外框
+        ctx.fillStyle = '#fecdd3'; ctx.fillRect(0, 0, 320, 160);
+        ctx.strokeStyle = '#be123c'; ctx.lineWidth = 8; ctx.strokeRect(6, 6, 308, 148);
+        ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2; ctx.strokeRect(14, 14, 292, 132);
+
+        // 左側文字標示
+        ctx.fillStyle = '#881337'; ctx.font = '900 22px "Noto Sans TC", sans-serif';
+        ctx.fillText('中華民國・新臺幣', 24, 42);
+        ctx.fillStyle = '#be123c'; ctx.font = '900 40px "Noto Sans TC", sans-serif';
+        ctx.fillText('壹佰圓', 24, 92);
+        ctx.fillStyle = '#9f1239'; ctx.font = '900 32px sans-serif';
+        ctx.fillText('100', 24, 134);
+
+        // 右側橢圓肖像框
+        const px = 235, py = 80;
+        ctx.fillStyle = '#ffe4e6';
+        ctx.beginPath(); ctx.ellipse(px, py, 50, 58, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.lineWidth = 4; ctx.strokeStyle = '#be123c'; ctx.stroke();
+
+        // 👤 繪製「孫中山先生」人像（中山裝、領口、臉龐、五官、八字鬍、短髮）
+        ctx.save();
+        ctx.beginPath(); ctx.ellipse(px, py, 48, 56, 0, 0, Math.PI * 2); ctx.clip();
+        // 深色中山裝與立領
+        ctx.fillStyle = '#334155';
+        ctx.beginPath(); ctx.ellipse(px, py + 52, 42, 32, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(px - 14, py + 18, 28, 16);
+        ctx.fillStyle = '#facc15'; // 中山裝金扣
+        ctx.beginPath(); ctx.arc(px, py + 28, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px, py + 40, 2.5, 0, Math.PI * 2); ctx.fill();
+        // 臉部與耳朵
+        ctx.fillStyle = '#fbd38d';
+        ctx.beginPath(); ctx.arc(px - 22, py - 4, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px + 22, py - 4, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(px, py - 6, 22, 27, 0, 0, Math.PI * 2); ctx.fill();
+        // 頭髮
+        ctx.fillStyle = '#27272a';
+        ctx.beginPath(); ctx.ellipse(px, py - 24, 23, 12, 0, Math.PI, Math.PI * 2); ctx.fill();
+        // 濃眉與雙眼
+        ctx.strokeStyle = '#18181b'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(px - 14, py - 11); ctx.lineTo(px - 4, py - 10); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px + 4, py - 10); ctx.lineTo(px + 14, py - 11); ctx.stroke();
+        ctx.fillStyle = '#18181b';
+        ctx.beginPath(); ctx.arc(px - 9, py - 5, 2.3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px + 9, py - 5, 2.3, 0, Math.PI * 2); ctx.fill();
+        // 招牌八字鬍與嘴巴
+        ctx.strokeStyle = '#27272a'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(px, py + 6); ctx.lineTo(px - 11, py + 9); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px, py + 6); ctx.lineTo(px + 11, py + 9); ctx.stroke();
+        ctx.lineWidth = 1.8; ctx.strokeStyle = '#9a3412';
+        ctx.beginPath(); ctx.moveTo(px - 5, py + 13); ctx.lineTo(px + 5, py + 13); ctx.stroke();
+        ctx.restore();
+
+        // 肖像下方名牌
+        ctx.fillStyle = '#9f1239'; ctx.fillRect(px - 34, 124, 68, 20);
+        ctx.fillStyle = '#ffffff'; ctx.font = '900 14px "Noto Sans TC", sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('孫中山', px, 139);
     } else {
-        ctx.fillStyle = '#dcfce7'; ctx.fillRect(0, 0, 256, 128);
-        ctx.strokeStyle = '#15803d'; ctx.lineWidth = 8; ctx.strokeRect(6, 6, 244, 116);
-        ctx.fillStyle = '#14532d'; ctx.font = '900 20px "Noto Sans TC", sans-serif';
-        ctx.fillText('UNITED STATES OF AMERICA', 16, 34);
-        ctx.font = '900 36px "Noto Sans TC", sans-serif';
-        ctx.fillText('ONE DOLLAR $1', 16, 88);
-        ctx.fillStyle = '#166534'; ctx.beginPath(); ctx.arc(208, 64, 32, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ffffff'; ctx.font = '900 18px "Noto Sans TC", sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('華盛頓', 208, 70);
+        // 🇺🇸 美金壹圓底色與雕花外框
+        ctx.fillStyle = '#dcfce7'; ctx.fillRect(0, 0, 320, 160);
+        ctx.strokeStyle = '#15803d'; ctx.lineWidth = 8; ctx.strokeRect(6, 6, 308, 148);
+        ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 2; ctx.strokeRect(14, 14, 292, 132);
+
+        // 左側文字標示
+        ctx.fillStyle = '#14532d'; ctx.font = '900 17px sans-serif';
+        ctx.fillText('THE UNITED STATES', 22, 40);
+        ctx.fillStyle = '#166534'; ctx.font = '900 34px sans-serif';
+        ctx.fillText('ONE DOLLAR', 22, 86);
+        ctx.fillStyle = '#15803d'; ctx.font = '900 34px sans-serif';
+        ctx.fillText('$ 1', 24, 132);
+
+        // 右側橢圓肖像框
+        const px = 242, py = 80;
+        ctx.fillStyle = '#f0fdf4';
+        ctx.beginPath(); ctx.ellipse(px, py, 50, 58, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.lineWidth = 4; ctx.strokeStyle = '#15803d'; ctx.stroke();
+
+        // 👤 繪製「華盛頓先生」人像（18世紀白色捲假髮、深色西裝與白色領巾）
+        ctx.save();
+        ctx.beginPath(); ctx.ellipse(px, py, 48, 56, 0, 0, Math.PI * 2); ctx.clip();
+        // 深色古典禮服與白色領巾 (Jabot)
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath(); ctx.ellipse(px, py + 52, 42, 32, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.moveTo(px - 10, py + 18); ctx.lineTo(px + 10, py + 18); ctx.lineTo(px + 6, py + 45); ctx.lineTo(px - 6, py + 45); ctx.closePath(); ctx.fill();
+        // 兩側蓬鬆白色捲假髮（後層）
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath(); ctx.arc(px - 23, py - 4, 13, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px + 23, py - 4, 13, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px - 24, py + 8, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px + 24, py + 8, 10, 0, Math.PI * 2); ctx.fill();
+        // 臉部
+        ctx.fillStyle = '#fde68a';
+        ctx.beginPath(); ctx.ellipse(px, py - 6, 21, 26, 0, 0, Math.PI * 2); ctx.fill();
+        // 頭頂白色假髮
+        ctx.fillStyle = '#f1f5f9';
+        ctx.beginPath(); ctx.ellipse(px, py - 24, 23, 11, 0, Math.PI, Math.PI * 2); ctx.fill();
+        // 眉毛、深邃雙眼、高挺鼻樑與緊抿嘴唇
+        ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2.2;
+        ctx.beginPath(); ctx.moveTo(px - 13, py - 11); ctx.lineTo(px - 4, py - 10); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px + 4, py - 10); ctx.lineTo(px + 13, py - 11); ctx.stroke();
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath(); ctx.arc(px - 8, py - 5, 2.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px + 8, py - 5, 2.2, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#b45309'; ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.moveTo(px, py - 6); ctx.lineTo(px - 2, py + 4); ctx.lineTo(px + 2, py + 4); ctx.stroke();
+        ctx.strokeStyle = '#9a3412'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(px - 7, py + 11); ctx.lineTo(px + 7, py + 11); ctx.stroke();
+        ctx.restore();
+
+        // 肖像下方名牌
+        ctx.fillStyle = '#14532d'; ctx.fillRect(px - 34, 124, 68, 20);
+        ctx.fillStyle = '#ffffff'; ctx.font = '900 14px "Noto Sans TC", sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('華盛頓', px, 139);
     }
+
     const tex = new THREE.CanvasTexture(c);
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.75, 0.16), new THREE.MeshBasicMaterial({ map: tex }));
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.8, 0.16), new THREE.MeshBasicMaterial({ map: tex }));
     return mesh;
 }
 
@@ -3090,17 +3370,43 @@ function buildLessonZone(lesson) {
         primaryNpcMesh = spawnZoneCast('jiajie', 3.6, 0.3, 0.8, faceRoadRot);
         spawnZoneCast('teacher', -3.0, 0.3, 1.2, 0.3);
         spawnZoneCast('mingzhen', 0.4, 0.3, 1.8, -0.1);
-    } else if (lesson.id === 6) {
-        // 第六課：旅行社的廣告（雨林與嘉年華大型海報、炸香蕉片餐盤）
-        const adBoard = new THREE.Mesh(new THREE.BoxGeometry(6.8, 3.2, 0.24), getMcMaterial(0x15803d, 14)); adBoard.position.set(0, 2.8, -4.8);
-        const sunDecor = new THREE.Mesh(new THREE.SphereGeometry(0.65, 14, 14), new THREE.MeshBasicMaterial({ color: 0xfacc15 })); sunDecor.position.set(-2.0, 3.4, -4.6);
-        const tbl = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.05, 1.8), getMcMaterial(0x92400e, 12)); tbl.position.set(0, 0.68, -1.2);
-        const dish = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.65, 0.12, 16), new THREE.MeshLambertMaterial({ color: 0xffffff })); dish.position.set(0, 1.26, -1.2);
-        const bananaChips = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.16, 12), getMcMaterial(0xfacc15, 12)); bananaChips.position.set(0, 1.36, -1.2);
-        zone.add(adBoard, sunDecor, tbl, dish, bananaChips);
+} else if (lesson.id === 6) {
+        // 第六課：旅行社的廣告（還原圖中「南美洲旅遊 20% off」紅框海報、粉紅沙發與明真的爸媽）
+        const flyerCanvas = document.createElement('canvas'); flyerCanvas.width = 256; flyerCanvas.height = 320;
+        const fCtx = flyerCanvas.getContext('2d');
+        fCtx.fillStyle = '#fef9c3'; fCtx.fillRect(0, 0, 256, 320);
+        fCtx.strokeStyle = '#ef4444'; fCtx.lineWidth = 18; fCtx.strokeRect(9, 9, 238, 302);
+        // 綠色南美洲地圖輪廓
+        fCtx.fillStyle = '#22c55e';
+        fCtx.beginPath(); fCtx.moveTo(135, 65); fCtx.lineTo(215, 110); fCtx.lineTo(185, 255); fCtx.lineTo(145, 285); fCtx.lineTo(120, 160); fCtx.closePath(); fCtx.fill();
+        // 標題與 20% off
+        fCtx.fillStyle = '#111827'; fCtx.font = '900 34px "Noto Sans TC", sans-serif'; fCtx.textAlign = 'center';
+        fCtx.fillText('南美洲旅遊', 128, 52);
+        fCtx.fillStyle = '#7c2d12'; fCtx.font = '900 28px sans-serif'; fCtx.textAlign = 'left';
+        fCtx.fillText('20%', 28, 120); fCtx.fillText('off', 32, 154);
+        // 亞馬遜雨林與森巴舞小插圖框
+        fCtx.fillStyle = '#15803d'; fCtx.fillRect(96, 86, 86, 56);
+        fCtx.strokeStyle = '#ffffff'; fCtx.lineWidth = 4; fCtx.strokeRect(96, 86, 86, 56);
+        fCtx.fillStyle = '#0f172a'; fCtx.fillRect(150, 165, 72, 85);
+        fCtx.fillStyle = '#ef4444'; fCtx.beginPath(); fCtx.arc(186, 205, 20, 0, Math.PI * 2); fCtx.fill();
+
+        const adBoard = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.8, 0.22), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(flyerCanvas) }));
+        adBoard.position.set(1.8, 2.5, -4.6);
+
+        // 客廳粉紅沙發與風景畫框
+        const sofaSeat = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.55, 1.5), getMcMaterial(0xf472b6, 10)); sofaSeat.position.set(-1.6, 0.55, -3.2);
+        const sofaBack = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.3, 0.4), getMcMaterial(0xec4899, 10)); sofaBack.position.set(-1.6, 1.2, -3.8);
+        const tbl = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.9, 1.5), getMcMaterial(0x92400e, 12)); tbl.position.set(0, 0.6, -0.8);
+        const dish = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.55, 0.1, 16), new THREE.MeshLambertMaterial({ color: 0xffffff })); dish.position.set(0, 1.1, -0.8);
+        const bananaChips = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.14, 12), getMcMaterial(0xfacc15, 12)); bananaChips.position.set(0, 1.18, -0.8);
+        zone.add(adBoard, sofaSeat, sofaBack, tbl, dish, bananaChips);
+
         primaryNpcMesh = spawnZoneCast('mingzhen', -3.4, 0.3, 0.8, faceRoadRot);
-        spawnZoneCast('dad', 0.0, 0.3, -2.6, 0);
-        spawnZoneCast('mom', 3.2, 0.3, 1.4, -0.35);
+        // 召喚明真的爸爸與明真的媽媽，並綁定至本課的 dad / mom 問答標記
+        const mzDadMesh = spawnZoneCast('mingzhen_dad', -0.4, 0.3, -2.2, 0);
+        const mzMomMesh = spawnZoneCast('mingzhen_mom', 3.0, 0.3, 1.2, -0.35);
+        spawnedCastByRole['dad'] = { role: 'dad', lx: -0.4, ly: 0.3, lz: -2.2, mesh: mzDadMesh };
+        spawnedCastByRole['mom'] = { role: 'mom', lx: 3.0, ly: 0.3, lz: 1.2, mesh: mzMomMesh };
     } else if (lesson.id === 7) {
         // 第七課：不要浪費食物（溫馨家庭餐桌、米飯餐盤、環保分類垃圾桶）
         const tbl = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.15, 2.4), getMcMaterial(0x92400e, 12)); tbl.position.set(-0.5, 0.72, -1.0);
@@ -3158,13 +3464,38 @@ function buildLessonZone(lesson) {
         spawnZoneCast('anna', -3.4, 0.3, 1.4, 0.3);
         spawnZoneCast('mingzhen', -1.2, 0.3, -1.8, 0.15);
         spawnZoneCast('teacher', 2.2, 0.3, -1.8, -0.25);
-    } else if (lesson.id === 12) {
-        // 第十二課：讓生活更美好（愛心地球公益舞台、紀念鈔票展示架）
-        const ntdBill = buildBanknoteDisplayMesh('ntd'); ntdBill.position.set(-2.8, 2.8, -4.7);
-        const usdBill = buildBanknoteDisplayMesh('usd'); usdBill.position.set(2.8, 2.8, -4.7);
-        const globe = new THREE.Mesh(new THREE.SphereGeometry(1.1, 18, 18), getMcMaterial(0x0ea5e9, 14)); globe.position.set(0, 1.8, -2.4);
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 0.6, 16), getMcMaterial(0xfacc15, 12)); base.position.set(0, 0.6, -2.4);
-        zone.add(ntdBill, usdBill, globe, base);
+} else if (lesson.id === 12) {
+        // 第十二課：讓生活更美好（清晰橫幅黑板、世界地球儀、孫中山行醫藥箱、幫助窮人與兒童的愛心桌）
+        const bannerCanvas = document.createElement('canvas'); bannerCanvas.width = 512; bannerCanvas.height = 180;
+        const bCtx = bannerCanvas.getContext('2d');
+        bCtx.fillStyle = '#14532d'; bCtx.fillRect(0, 0, 512, 180);
+        bCtx.strokeStyle = '#d97706'; bCtx.lineWidth = 14; bCtx.strokeRect(7, 7, 498, 166);
+        bCtx.fillStyle = '#fef08a'; bCtx.font = '900 44px "Noto Sans TC", sans-serif'; bCtx.textAlign = 'center';
+        bCtx.fillText('讓生活更美好', 256, 82);
+        bCtx.fillStyle = '#ffffff'; bCtx.font = '700 26px "Noto Sans TC", sans-serif';
+        bCtx.fillText('願意幫助別人・對社會有貢獻', 256, 136);
+        const bannerBoard = new THREE.Mesh(new THREE.BoxGeometry(6.4, 2.3, 0.22), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(bannerCanvas) }));
+        bannerBoard.position.set(0, 3.1, -4.8);
+
+        // 中央：幫助世界上其他國家的人（世界地球儀）
+        const globe = new THREE.Mesh(new THREE.SphereGeometry(1.05, 18, 18), getMcMaterial(0x0ea5e9, 14)); globe.position.set(0, 1.7, -2.2);
+        const cont1 = new THREE.Mesh(new THREE.SphereGeometry(0.45, 10, 10), getMcMaterial(0x22c55e, 12)); cont1.position.set(0.6, 1.9, -1.55);
+        const cont2 = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 10), getMcMaterial(0x16a34a, 12)); cont2.position.set(-0.55, 1.55, -1.5);
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.85, 0.55, 16), getMcMaterial(0xfacc15, 12)); base.position.set(0, 0.58, -2.2);
+
+        // 左側：孫中山先生當醫生救人的「白色醫藥箱與木桌」
+        const medTable = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.0, 1.4), getMcMaterial(0x92400e, 12)); medTable.position.set(-3.4, 0.65, -2.4);
+        const medBox = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.75, 0.8), new THREE.MeshLambertMaterial({ color: 0xffffff })); medBox.position.set(-3.4, 1.5, -2.4);
+        const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.48, 0.84), new THREE.MeshBasicMaterial({ color: 0xef4444 })); crossV.position.set(-3.4, 1.5, -2.4);
+        const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.16, 0.84), new THREE.MeshBasicMaterial({ color: 0xef4444 })); crossH.position.set(-3.4, 1.5, -2.4);
+
+        // 右側：幫助身邊窮人與兒童的「溫暖食物與圖書禮物桌」
+        const giftTable = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.0, 1.4), getMcMaterial(0x92400e, 12)); giftTable.position.set(3.4, 0.65, -2.4);
+        const giftBox = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.65, 0.75), getMcMaterial(0x38bdf8, 10)); giftBox.position.set(3.0, 1.45, -2.4);
+        const ribbon = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.68, 0.18), new THREE.MeshBasicMaterial({ color: 0xfacc15 })); ribbon.position.set(3.0, 1.45, -2.4);
+        const breadLoaf = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), getMcMaterial(0xd97706, 12)); breadLoaf.scale.set(1.3, 0.8, 1.0); breadLoaf.position.set(3.9, 1.35, -2.4);
+
+        zone.add(bannerBoard, globe, cont1, cont2, base, medTable, medBox, crossV, crossH, giftTable, giftBox, ribbon, breadLoaf);
         primaryNpcMesh = spawnZoneCast('anna', -3.6, 0.3, 0.8, faceRoadRot);
         spawnZoneCast('teacher', 2.8, 0.3, 1.4, -0.3);
     }
@@ -5818,22 +6149,37 @@ window.addEventListener('load', () => {
 });
 
 // ============================================================================
-// 💎 皇家豪華商店擴充包 (含吉祥丹頂白鶴神寵 ＋ 室內熊貓玩偶靠左牆獨立擺放)
+// 💎 第七冊 (Book 7) 各課課文情境專屬小屋裝飾獎勵包（完整保留 4 隻寵物）
 // ============================================================================
+SHOP_FURNITURE.length = 0;
 SHOP_FURNITURE.push(
+    // 🐾 完整保留 4 隻跟隨寵物
+    { id: 'pet_shiba', name: '🐕 金黃柴犬寵物', nameEn: '🐕 Golden Shiba Pet', price: 50, reqLesson: 0, type: 'pet', placement: 'follow', desc: '金黃棕毛色配白臉頰與捲尾巴的活潑柴犬，點擊牠會汪汪叫！', descEn: 'Lively Shiba Inu that follows you and barks when clicked!' },
+    { id: 'pet_kitten', name: '🐱 蜜桃粉紅小貓', nameEn: '🐱 Peach Pink Kitten', price: 50, reqLesson: 0, type: 'pet', placement: 'follow', desc: '亮眼蜜桃粉紅毛色配雪白胸毛、紫羅蘭耳尖與貓鬍鬚，點擊牠會喵喵叫！', descEn: 'Cute pink kitten that follows you and meows when clicked!' },
     { id: 'pet_panda', name: '🐼 圓滾滾小熊貓寵物', nameEn: '🐼 Chubby Baby Panda Pet', price: 180, reqLesson: 3, type: 'pet', placement: 'follow', desc: '【豪華稀有】超萌黑白小熊貓跟隨你跳島冒險，點擊牠會開心翻滾！', descEn: '[Luxury Pet] Cute baby panda that follows you everywhere!' },
     { id: 'pet_fox', name: '🦢 吉祥丹頂白鶴神寵', nameEn: '🦢 Lucky Red-Crowned Crane', price: 260, reqLesson: 6, type: 'pet', placement: 'follow', desc: '【傳說神鳥】頭頂朱紅丹頂、雪白羽翼與修長雙腿的仙鶴，點擊會優雅展翅！', descEn: '[Legendary Bird] Graceful Red-Crowned Crane with snowy wings!' },
-    { id: 'fountain_lux', name: '⛲ 庭院皇家雙層噴水池', nameEn: '⛲ Royal Courtyard Fountain', price: 180, reqLesson: 2, type: 'furniture', placement: 'outdoor', desc: '【豪華庭園】白玉石雙層雕刻水池與湧泉水柱，讓小屋庭院超氣派！', descEn: '[Luxury] White marble two-tier fountain for your courtyard!' },
-    { id: 'sakura_lux', name: '🌸 庭院夢幻櫻花樹', nameEn: '🌸 Dreamy Sakura Tree', price: 200, reqLesson: 5, type: 'furniture', placement: 'outdoor', desc: '【豪華庭園】盛開粉紅花冠的浪漫大櫻花樹，附樹下野餐花瓣墊！', descEn: '[Luxury] Blooming pink cherry blossom tree!' },
-    { id: 'piano_lux', name: '🎹 室內古典三角大鋼琴', nameEn: '🎹 Classic Grand Piano', price: 220, reqLesson: 9, type: 'furniture', placement: 'indoor', desc: '【豪華室內】黑檀木烤漆三角演奏鋼琴配黑白琴鍵與金邊琴椅！', descEn: '[Luxury] Ebony grand piano with golden bench!' },
-    { id: 'aquarium_lux', name: '🐠 室內海底世界大水族箱', nameEn: '🐠 Giant Coral Aquarium', price: 250, reqLesson: 8, type: 'furniture', placement: 'indoor', desc: '【豪華室內】湛藍發光玻璃水缸，裡面有珊瑚、水草與悠游的熱帶魚！', descEn: '[Luxury] Illuminated reef aquarium with tropical fish!' },
-    { id: 'lion_lux', name: '🎈 庭院夢幻彩虹熱氣球', nameEn: '🎈 Rainbow Hot Air Balloon', price: 350, reqLesson: 10, type: 'furniture', placement: 'outdoor', desc: '【尊榮收藏】超壯觀的彩色條紋升空熱氣球與藤編吊籃，點亮整座小屋島！', descEn: '[Prestige] Giant colorful rainbow hot air balloon for your courtyard!' },
-    { id: 'castle_lux', name: '🏰 庭院童話水晶城堡模型', nameEn: '🏰 Crystal Fairy-Tale Castle', price: 500, reqLesson: 12, type: 'furniture', placement: 'outdoor', desc: '【終極大獎】高聳藍金尖塔與粉白城牆的夢幻城堡，華語大富翁象徵！', descEn: '[Ultimate Prize] Magnificent fairy-tale castle with golden spires!' }
-);
 
-SHOP_OUTFITS.push(
-    { id: 'emperor_lux', name: '🐉 皇家紫金龍袍 (豪華特典)', nameEn: '🐉 Royal Purple-Gold Robe', price: 280, reqLesson: 6, color: 0x7e22ce, hat: 'crown' },
-    { id: 'astronaut_lux', name: '🚀 星際太空人套裝 (豪華特典)', nameEn: '🚀 Star Astronaut Suit', price: 380, reqLesson: 10, color: 0xe2e8f0, hat: 'pilot' }
+    // 🎨 L1 ~ L12 第七冊各課專屬解鎖裝飾品
+    { id: 'pool_L1', name: '🎨 庭院水彩畫架與地理海報亭', nameEn: '🎨 Watercolor Easel & Poster Stand', price: 40, reqLesson: 1, type: 'furniture', placement: 'outdoor', desc: '【第1課・我最喜歡的課】華中的美術水彩畫架與安娜、凱文的韓英地理歷史海報！', descEn: '[Unlock L1] Outdoor art easel with watercolor painting & geography poster!' },
+    { id: 'desk_L2', name: '✈️ 室內航空飛機與四國語言書桌', nameEn: '✈️ Airline Model & 4-Language Desk', price: 45, reqLesson: 2, type: 'furniture', placement: 'indoor', desc: '【第2課・班上的新同學】擺著寶拉爸爸的航空客機模型、地球儀與中西日英四語字典！', descEn: '[Unlock L2] Wooden desk with airliner model, globe & 4-language books!' },
+    { id: 'cart_L3', name: '🛍️ 庭院百貨打折球鞋與牛仔褲車', nameEn: '🛍️ Dept. Store Sale Sneaker Cart', price: 50, reqLesson: 3, type: 'furniture', placement: 'outdoor', desc: '【第3課・百貨公司】掛著「SALE 打折」紅牌的花車，展示六折球鞋、買一送一牛仔褲與刷卡機！', descEn: '[Unlock L3] Sale cart with sneakers, buy-1-get-1 jeans & card reader!' },
+    { id: 'table_L4', name: '🥟 室內手工水餃與義大利餃子桌', nameEn: '🥟 Handmade & Ravioli Dumpling Table', price: 55, reqLesson: 4, type: 'furniture', placement: 'indoor', desc: '【第4課・包餃子】實木料理桌擺滿捏緊的飽滿水餃、擀麵棍與淋上紅醬汁的義大利餃子！', descEn: '[Unlock L4] Dining table with handmade dumplings, wrapper & ravioli in sauce!' },
+    { id: 'chair_L5', name: '🎭 庭院巴西嘉年華五彩羽毛花車椅', nameEn: '🎭 Brazil Carnival Feather Throne', price: 60, reqLesson: 5, type: 'furniture', placement: 'outdoor', desc: '【第5課・巴西嘉年華會】熱情森巴黃金搖椅，背後展開五顏六色的華麗羽毛裝飾！', descEn: '[Unlock L5] Golden Samba carnival chair with colorful feathers!' },
+    { id: 'screen_L6', name: '🌴 室內雨林屏風與炸香蕉片點心桌', nameEn: '🌴 Rainforest Screen & Fried Banana', price: 65, reqLesson: 6, type: 'furniture', placement: 'indoor', desc: '【第6課・旅行社的廣告】南美雨林翠綠屏風，搭配切成長片放進油鍋炸的金黃香蕉盤！', descEn: '[Unlock L6] Tropical rainforest screen with a plate of crispy fried banana slices!' },
+    { id: 'bed_L7', name: '🍱 室內惜食愛心床與餐廳打包餐盒', nameEn: '🍱 Zero-Waste Bed & Takeout Bento', price: 70, reqLesson: 7, type: 'furniture', placement: 'indoor', desc: '【第7課・不要浪費食物】溫馨單人床搭配床頭「惜食不浪費」愛心打包餐盒與分類桶！', descEn: '[Unlock L7] Cozy wooden bed with zero-waste takeout bento box!' },
+    { id: 'hutch_L8', name: '🎵 庭院流行音樂舞台與巨型耳機', nameEn: '🎵 Pop Music Stage & Giant Headphones', price: 75, reqLesson: 8, type: 'furniture', placement: 'outdoor', desc: '【第8課・流行音樂】立著黃金高音譜記號、炫彩立體音響與安娜最愛的巨型潮流耳機！', descEn: '[Unlock L8] Courtyard music stage with giant headphones, speakers & golden note!' },
+    { id: 'ball_L9', name: '💵 庭院新臺幣與美金紀念鈔票展台', nameEn: '💵 NTD & USD Banknote Pavilion', price: 80, reqLesson: 9, type: 'furniture', placement: 'outdoor', desc: '【第9課・鈔票上的人物】氣派展台立體陳列新臺幣一百元（孫中山）與美金一元（華盛頓）！', descEn: '[Unlock L9] Grand display stand featuring 100 NTD and 1 USD giant banknotes!' },
+    { id: 'tower_L10', name: '🏮 室內夏令營天燈與陀螺象棋架', nameEn: '🏮 Sky Lantern, Top & Chess Stand', price: 90, reqLesson: 10, type: 'furniture', placement: 'indoor', desc: '【第10課・參加華語夏令營】頂端高掛發光平溪紅天燈，下層擺著大陀螺與象棋盤！', descEn: '[Unlock L10] Cultural stand with glowing sky lantern, spinning top & Chinese chess!' },
+    { id: 'panda_L11', name: '📱 室內巨型智慧手機與網路生活站', nameEn: '📱 Giant Smartphone & Net Station', price: 100, reqLesson: 11, type: 'furniture', placement: 'indoor', desc: '【第11課・網路生活】大型智慧型手機螢幕模型（顯示電子郵件、通訊軟體與地圖）！', descEn: '[Unlock L11] Giant smartphone kiosk showing email, chat apps & map icons!' },
+    { id: 'shelf_L12', name: '🌍 室內博愛公益書櫃與救人醫箱', nameEn: '🌍 Philanthropy & Peace Bookshelf', price: 110, reqLesson: 12, type: 'furniture', placement: 'indoor', desc: '【第12課・讓生活更美好】紅木古典書櫃，展示行醫救人紀念箱、愛心地球儀與滿滿書籍！', descEn: '[Unlock L12] Mahogany bookshelf with charity box, globe & medical kit!' },
+
+    // 💎 第七冊豪華特典裝飾品
+    { id: 'fountain_lux', name: '⛲ 庭院亞馬遜雨林翡翠湧泉池', nameEn: '⛲ Amazon Rainforest Fountain', price: 180, reqLesson: 6, type: 'furniture', placement: 'outdoor', desc: '【第6課・世界最大雨林】環繞熱帶雨林綠葉與金頂雕塑的雙層翡翠冷泉水池！', descEn: '[L6 Rainforest] Two-tier emerald fountain with tropical foliage!' },
+    { id: 'sakura_lux', name: '🎪 庭院巴西森巴嘉年華彩燈拱門', nameEn: '🎪 Brazil Samba Carnival Arch', price: 200, reqLesson: 5, type: 'furniture', placement: 'outdoor', desc: '【第5課・森巴舞比賽】五顏六色璀璨發光的嘉年華羽毛拱門與歡樂森巴鼓舞台！', descEn: '[L5 Carnival] Multicolored Samba carnival arch with drums & feathers!' },
+    { id: 'piano_lux', name: '🎹 室內明真古典演奏三角大鋼琴', nameEn: '🎹 Jane\'s Classical Grand Piano', price: 220, reqLesson: 8, type: 'furniture', placement: 'indoor', desc: '【第8課・古典音樂】黑檀木烤漆三角演奏大鋼琴配黑白琴鍵與金邊琴椅！', descEn: '[L8 Classical Music] Ebony grand piano with golden prop & bench!' },
+    { id: 'aquarium_lux', name: '🍍 室內臺灣鳳梨酥與太極文化櫃', nameEn: '🍍 Pineapple Cake & Culture Case', price: 250, reqLesson: 10, type: 'furniture', placement: 'indoor', desc: '【第10課・華語夏令營】發光展示櫃陳列金黃鳳梨酥禮盒、太極裝飾與原住民圖騰！', descEn: '[L10 Summer Camp] Illuminated case with Taiwan pineapple cakes & cultural arts!' },
+    { id: 'lion_lux', name: '🏮 庭院巨型冉冉升空平溪天燈塔', nameEn: '🏮 Giant Glowing Pingxi Sky Lantern', price: 350, reqLesson: 10, type: 'furniture', placement: 'outdoor', desc: '【第10課・放天燈尊榮收藏】超壯觀的巨型發光紅金祈福天燈，點亮整座小屋島夜空！', descEn: '[L10 Prestige] Giant glowing red-and-gold Pingxi sky lantern floating over your courtyard!' },
+    { id: 'castle_lux', name: '🏛️ 庭院自由民主紀念博愛殿堂', nameEn: '🏛️ Liberty & Democracy Memorial Hall', price: 500, reqLesson: 12, type: 'furniture', placement: 'outdoor', desc: '【第9/12課・終極大獎】潔白羅馬柱與金色圓頂的自由民主殿堂，象徵讓人民生活更美好！', descEn: '[Ultimate Prize] Magnificent white-columned Liberty & Democracy dome hall!' }
 );
 
 const _origBuildPetMesh = buildPetMesh;
@@ -5921,33 +6267,172 @@ buildPetMesh = function(petId) {
     return _origBuildPetMesh(petId);
 };
 
-const _origBuildFurnitureMesh = buildFurnitureItemMesh;
+// 🎨 全新打造第七冊 L01~L12 與豪華特典 3D 模型
 buildFurnitureItemMesh = function(fid) {
     const grp = new THREE.Group();
+    if (fid === 'pool_L1') {
+        // 🎨 第1課：庭院水彩畫架與韓英地理海報亭
+        const easel = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.2, 0.15), getMcMaterial(0xb45309, 12)); easel.position.set(-0.7, 1.1, 0); easel.rotation.y = 0.25;
+        const canvasArt = new THREE.Mesh(new THREE.BoxGeometry(1.25, 1.1, 0.18), new THREE.MeshBasicMaterial({ color: 0xbae6fd })); canvasArt.position.set(-0.7, 1.35, 0.02); canvasArt.rotation.y = 0.25;
+        const sunDot = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 10), new THREE.MeshBasicMaterial({ color: 0xf43f5e })); sunDot.position.set(-0.7, 1.45, 0.12);
+        const posterBoard = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.1, 0.16), getMcMaterial(0x1e3a8a, 10)); posterBoard.position.set(0.75, 1.05, -0.1); posterBoard.rotation.y = -0.2;
+        const posterPaper = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.6, 0.2), new THREE.MeshBasicMaterial({ color: 0xfef08a })); posterPaper.position.set(0.75, 1.15, -0.08); posterPaper.rotation.y = -0.2;
+        grp.add(easel, canvasArt, sunDot, posterBoard, posterPaper);
+        return grp;
+    }
+    if (fid === 'desk_L2') {
+        // ✈️ 第2課：室內航空飛機與四國語言書桌
+        const woodMat = getMcMaterial(0x78350f, 12);
+        const top = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 1.3), woodMat); top.position.y = 1.15;
+        [[-1.05, -0.5], [1.05, -0.5], [-1.05, 0.5], [1.05, 0.5]].forEach(([lx, lz]) => {
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.15, 0.12), woodMat); leg.position.set(lx, 0.575, lz); grp.add(leg);
+        });
+        const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.1, 12), new THREE.MeshLambertMaterial({ color: 0xffffff })); fuselage.rotation.z = Math.PI / 2; fuselage.position.set(-0.45, 1.55, 0);
+        const wings = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.05, 1.1), getMcMaterial(0x0ea5e9, 10)); wings.position.set(-0.45, 1.55, 0);
+        const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.16, 0.35, 8), getMcMaterial(0x94a3b8, 8)); stand.position.set(-0.45, 1.35, 0);
+        const globe = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 14), getMcMaterial(0x0284c7, 12)); globe.position.set(0.55, 1.52, -0.1);
+        grp.add(top, fuselage, wings, stand, globe);
+        return grp;
+    }
+    if (fid === 'cart_L3') {
+        // 🛍️ 第3課：庭院百貨打折球鞋與買一送一牛仔褲花車
+        const cartBody = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.1, 1.4), getMcMaterial(0x0284c7, 10)); cartBody.position.y = 0.85;
+        const saleCanvas = document.createElement('canvas'); saleCanvas.width = 128; saleCanvas.height = 64;
+        const sCtx = saleCanvas.getContext('2d');
+        sCtx.fillStyle = '#dc2626'; sCtx.fillRect(0, 0, 128, 64);
+        sCtx.fillStyle = '#fef08a'; sCtx.font = '900 32px sans-serif'; sCtx.textAlign = 'center'; sCtx.fillText('SALE 打折', 64, 43);
+        const saleSign = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.65, 0.12), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(saleCanvas) })); saleSign.position.set(0, 2.35, 0);
+        const shoe1 = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.25, 0.25), new THREE.MeshBasicMaterial({ color: 0xef4444 })); shoe1.position.set(-0.6, 1.52, 0.15);
+        const shoe2 = shoe1.clone(); shoe2.position.set(-0.6, 1.52, -0.2);
+        const jeans = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.14, 0.55), getMcMaterial(0x1d4ed8, 12)); jeans.position.set(0.2, 1.48, 0);
+        const cardReader = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.3, 0.35), getMcMaterial(0x1e293b, 10)); cardReader.position.set(0.8, 1.55, 0);
+        grp.add(cartBody, saleSign, shoe1, shoe2, jeans, cardReader);
+        return grp;
+    }
+    if (fid === 'table_L4') {
+        // 🥟 第4課：室內手工水餃與紅醬義大利餃子桌
+        const tblTop = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.14, 1.8), getMcMaterial(0xb45309, 12)); tblTop.position.y = 1.0;
+        [[-1.15, -0.75], [1.15, -0.75], [-1.15, 0.75], [1.15, 0.75]].forEach(([lx, lz]) => {
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.0, 0.12), getMcMaterial(0xb45309, 12)); leg.position.set(lx, 0.5, lz); grp.add(leg);
+        });
+        const plate1 = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.42, 0.08, 16), new THREE.MeshLambertMaterial({ color: 0xffffff })); plate1.position.set(-0.55, 1.1, 0);
+        [-0.7, -0.55, -0.4].forEach(dx => {
+            const dmp = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 10), new THREE.MeshLambertMaterial({ color: 0xfef9c3 }));
+            dmp.scale.set(1.3, 0.8, 0.9); dmp.position.set(dx, 1.18, 0); grp.add(dmp);
+        });
+        const plate2 = plate1.clone(); plate2.position.x = 0.55;
+        const sauce = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.06, 14), getMcMaterial(0xdc2626, 10)); sauce.position.set(0.55, 1.15, 0);
+        const rollingPin = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.75, 10), getMcMaterial(0xd97706, 10)); rollingPin.rotation.z = Math.PI / 2; rollingPin.position.set(0, 1.12, 0.55);
+        grp.add(tblTop, plate1, plate2, sauce, rollingPin);
+        return grp;
+    }
+    if (fid === 'chair_L5') {
+        // 🎭 第5課：庭院巴西嘉年華五彩羽毛花車椅
+        const goldMat = getMcMaterial(0xf59e0b, 12);
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.45, 1.2), goldMat); seat.position.set(0, 0.45, 0);
+        const back = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.5, 0.2), getMcMaterial(0xdc2626, 10)); back.position.set(0, 1.25, -0.5);
+        const fColors = [0xef4444, 0xfacc15, 0x22c55e, 0x38bdf8, 0xa855f7];
+        fColors.forEach((cHex, idx) => {
+            const feather = new THREE.Mesh(new THREE.ConeGeometry(0.28, 1.8, 8), getMcMaterial(cHex, 12));
+            feather.position.set(-0.9 + idx * 0.45, 2.0, -0.55);
+            feather.rotation.z = (2 - idx) * 0.25;
+            grp.add(feather);
+        });
+        grp.add(seat, back);
+        return grp;
+    }
+    if (fid === 'screen_L6') {
+        // 🌴 第6課：室內南美雨林屏風與油炸香蕉片盤
+        const greenMat = getMcMaterial(0x15803d, 14);
+        const screen = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.6, 0.15), greenMat); screen.position.set(0, 1.3, -0.35);
+        const sunDecor = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 12), new THREE.MeshBasicMaterial({ color: 0xfacc15 })); sunDecor.position.set(0, 1.9, -0.25);
+        const tbl = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.8, 0.9), getMcMaterial(0x92400e, 12)); tbl.position.set(0, 0.4, 0.35);
+        const dish = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.35, 0.08, 14), new THREE.MeshBasicMaterial({ color: 0xffffff })); dish.position.set(0, 0.84, 0.35);
+        const friedBanana = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.12, 12), getMcMaterial(0xfacc15, 10)); friedBanana.position.set(0, 0.9, 0.35);
+        grp.add(screen, sunDecor, tbl, dish, friedBanana);
+        return grp;
+    }
+    if (fid === 'bed_L7') {
+        // 🍱 第7課：室內惜食愛心床與餐廳打包餐盒
+        const woodMat = getMcMaterial(0x92400e, 10);
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 1.8), woodMat); frame.position.y = 0.4;
+        const headboard = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.4, 1.8), woodMat); headboard.position.set(-1.25, 0.9, 0);
+        const mattress = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.3, 1.6), new THREE.MeshLambertMaterial({ color: 0xffffff })); mattress.position.set(0.05, 0.65, 0);
+        const quilt = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.34, 1.62), getMcMaterial(0x22c55e, 12)); quilt.position.set(0.45, 0.68, 0);
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.22, 1.1), new THREE.MeshLambertMaterial({ color: 0xf1f5f9 })); pillow.position.set(-0.75, 0.88, 0);
+        const bentoBox = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 0.45), getMcMaterial(0xf97316, 10)); bentoBox.position.set(-0.8, 1.02, 1.15);
+        grp.add(frame, headboard, mattress, quilt, pillow, bentoBox);
+        return grp;
+    }
+    if (fid === 'hutch_L8') {
+        // 🎵 第8課：庭院流行音樂舞台與巨型耳機音響
+        const stage = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.25, 1.6), getMcMaterial(0x1e293b, 12)); stage.position.y = 0.125;
+        const speakerL = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.2, 0.5), getMcMaterial(0x334155, 10)); speakerL.position.set(-0.85, 0.85, -0.2);
+        const speakerR = speakerL.clone(); speakerR.position.x = 0.85;
+        const band = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.08, 10, 20, Math.PI), new THREE.MeshBasicMaterial({ color: 0xf43f5e })); band.position.set(0, 1.35, 0.1);
+        const cupL = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.2, 14), getMcMaterial(0xf43f5e, 10)); cupL.rotation.z = Math.PI / 2; cupL.position.set(-0.55, 1.25, 0.1);
+        const cupR = cupL.clone(); cupR.position.x = 0.55;
+        grp.add(stage, speakerL, speakerR, band, cupL, cupR);
+        return grp;
+    }
+    if (fid === 'ball_L9') {
+        // 💵 第9課：庭院新臺幣與美金紀念鈔票展台
+        const base = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.45, 1.6), getMcMaterial(0x78350f, 12)); base.position.y = 0.225;
+        const ntd = buildBanknoteDisplayMesh('ntd'); ntd.scale.set(0.48, 0.48, 0.48); ntd.position.set(-0.85, 1.05, 0);
+        const usd = buildBanknoteDisplayMesh('usd'); usd.scale.set(0.48, 0.48, 0.48); usd.position.set(0.85, 1.05, 0);
+        grp.add(base, ntd, usd);
+        return grp;
+    }
+    if (fid === 'tower_L10') {
+        // 🏮 第10課：室內夏令營平溪天燈與陀螺象棋架
+        const stand = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.8, 1.2), getMcMaterial(0x92400e, 12)); stand.position.y = 0.4;
+        const topToy = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.55, 14), getMcMaterial(0xd97706, 12)); topToy.rotation.x = Math.PI; topToy.position.set(-0.45, 1.08, 0);
+        const chessBoard = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.08, 0.65), getMcMaterial(0xfde047, 10)); chessBoard.position.set(0.4, 0.85, 0);
+        const lantern = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.34, 1.1, 12), new THREE.MeshLambertMaterial({ color: 0xef4444, emissive: 0xdc2626, emissiveIntensity: 0.35 }));
+        lantern.position.set(0, 2.35, 0);
+        grp.add(stand, topToy, chessBoard, lantern);
+        return grp;
+    }
+    if (fid === 'panda_L11') {
+        // 📱 第11課：室內巨型智慧型手機與網路生活站
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.95, 0.25, 18), getMcMaterial(0x334155, 10)); base.position.y = 0.125;
+        const phoneFrame = new THREE.Mesh(new THREE.BoxGeometry(1.35, 2.35, 0.18), getMcMaterial(0x0f172a, 8)); phoneFrame.position.y = 1.4;
+        const screen = new THREE.Mesh(new THREE.BoxGeometry(1.18, 1.95, 0.2), new THREE.MeshBasicMaterial({ color: 0x38bdf8 })); screen.position.y = 1.42;
+        [[-0.3, 1.85, 0x22c55e], [0.3, 1.85, 0xf43f5e], [-0.3, 1.25, 0xfacc15], [0.3, 1.25, 0xa855f7]].forEach(([ax, ay, aHex]) => {
+            const app = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 0.24), new THREE.MeshBasicMaterial({ color: aHex })); app.position.set(ax, ay, 0); grp.add(app);
+        });
+        grp.add(base, phoneFrame, screen);
+        return grp;
+    }
     if (fid === 'fountain_lux') {
-        const stoneMat = getMcMaterial(0xe2e8f0, 10);
-        const waterMat = new THREE.MeshLambertMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85 });
+        // ⛲ 第6課・世界最大雨林：亞馬遜翡翠湧泉池
+        const stoneMat = getMcMaterial(0x065f46, 14);
+        const waterMat = new THREE.MeshLambertMaterial({ color: 0x34d399, transparent: true, opacity: 0.85 });
         const b1 = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.9, 0.45, 20), stoneMat); b1.position.y = 0.225;
         const w1 = new THREE.Mesh(new THREE.CylinderGeometry(1.65, 1.65, 0.48, 20), waterMat); w1.position.y = 0.24;
         const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.5, 16), stoneMat); pillar.position.y = 0.95;
         const b2 = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 0.8, 0.3, 18), stoneMat); b2.position.y = 1.65;
-        const w2 = new THREE.Mesh(new THREE.CylinderGeometry(0.88, 0.88, 0.34, 18), waterMat); w2.position.y = 1.67;
         const spout = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.9, 14), waterMat); spout.position.y = 2.25;
-        const goldTop = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), new THREE.MeshBasicMaterial({ color: 0xfacc15 })); goldTop.position.y = 2.72;
-        grp.add(b1, w1, pillar, b2, w2, spout, goldTop);
+        const goldTop = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), new THREE.MeshBasicMaterial({ color: 0xfacc15 })); goldTop.position.y = 2.75;
+        grp.add(b1, w1, pillar, b2, spout, goldTop);
         return grp;
     }
     if (fid === 'sakura_lux') {
-        const mat = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 0.06, 20), getMcMaterial(0xfbcfe8, 10)); mat.position.y = 0.04;
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.52, 2.4, 12), getMcMaterial(0x5c2c16, 14)); trunk.position.y = 1.2;
-        const pink1 = getMcMaterial(0xf472b6, 16), pink2 = getMcMaterial(0xf9a8d4, 16);
-        const c1 = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.6, 2.8), pink1); c1.position.set(0, 2.8, 0);
-        const c2 = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.2, 2.2), pink2); c2.position.set(0.3, 3.7, -0.2);
-        const c3 = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.1, 1.8), pink2); c3.position.set(-0.6, 3.2, 0.5);
-        grp.add(mat, trunk, c1, c2, c3);
+        // 🎪 第5課・巴西嘉年華：五顏六色森巴彩燈拱門
+        const stage = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.9, 0.2, 20), getMcMaterial(0xf59e0b, 12)); stage.position.y = 0.1;
+        const arch = new THREE.Mesh(new THREE.TorusGeometry(1.45, 0.18, 12, 24, Math.PI), getMcMaterial(0xec4899, 12)); arch.position.y = 1.2;
+        const colors = [0xef4444, 0xfacc15, 0x22c55e, 0x38bdf8, 0xa855f7];
+        colors.forEach((cHex, i) => {
+            const ang = (i / (colors.length - 1)) * Math.PI;
+            const orb = new THREE.Mesh(new THREE.SphereGeometry(0.26, 12, 12), new THREE.MeshBasicMaterial({ color: cHex }));
+            orb.position.set(Math.cos(ang) * 1.55, 1.2 + Math.sin(ang) * 1.55, 0);
+            grp.add(orb);
+        });
+        grp.add(stage, arch);
         return grp;
     }
     if (fid === 'piano_lux') {
+        // 🎹 第8課・古典音樂：明真古典演奏三角大鋼琴
         const blackMat = getMcMaterial(0x111827, 8), goldMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
         const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.35, 1.8), blackMat); body.position.set(0, 1.05, 0);
         const lid = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.08, 1.7), blackMat); lid.position.set(0, 1.55, -0.1); lid.rotation.x = 0.45;
@@ -5961,76 +6446,61 @@ buildFurnitureItemMesh = function(fid) {
         return grp;
     }
     if (fid === 'aquarium_lux') {
-        const stand = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.9, 1.1), getMcMaterial(0x1e293b, 10)); stand.position.y = 0.45;
-        const glass = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.3, 1.0), new THREE.MeshLambertMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.78 })); glass.position.y = 1.55;
-        const sand = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.14, 0.9), getMcMaterial(0xfde047, 12)); sand.position.y = 0.98;
-        const coral1 = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.65, 8), getMcMaterial(0xf43f5e, 12)); coral1.position.set(-0.6, 1.3, 0);
-        const coral2 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.75, 0.2), getMcMaterial(0x22c55e, 12)); coral2.position.set(0.65, 1.35, -0.1);
-        const fish1 = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.18, 0.1), new THREE.MeshBasicMaterial({ color: 0xf97316 })); fish1.position.set(-0.1, 1.65, 0.15);
-        const fish2 = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.16, 0.1), new THREE.MeshBasicMaterial({ color: 0xfef08a })); fish2.position.set(0.35, 1.85, -0.1);
-        const topLight = new THREE.Mesh(new THREE.BoxGeometry(2.56, 0.12, 1.06), getMcMaterial(0x0f172a, 8)); topLight.position.y = 2.25;
-        grp.add(stand, sand, coral1, coral2, fish1, fish2, glass, topLight);
+        // 🍍 第10課・華語夏令營：臺灣鳳梨酥與太極文化展示櫃
+        const stand = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.9, 1.1), getMcMaterial(0x7c2d12, 10)); stand.position.y = 0.45;
+        const glass = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 1.0), new THREE.MeshLambertMaterial({ color: 0xfef08a, transparent: true, opacity: 0.45 })); glass.position.y = 1.5;
+        [-0.6, -0.2, 0.2].forEach(px => {
+            const cake = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.18, 0.28), getMcMaterial(0xf59e0b, 10)); cake.position.set(px, 1.05, 0); grp.add(cake);
+        });
+        const taiChiDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.08, 18), new THREE.MeshBasicMaterial({ color: 0x111827 })); taiChiDisc.rotation.x = Math.PI / 2; taiChiDisc.position.set(0.7, 1.45, 0);
+        grp.add(stand, taiChiDisc, glass);
         return grp;
     }
     if (fid === 'lion_lux') {
-        const basketMat = getMcMaterial(0xb45309, 16);
-        const rimMat = getMcMaterial(0x78350f, 12);
-        const ropeMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-
-        const basket = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.85, 1.1), basketMat);
-        basket.position.y = 0.425;
-        const basketRim = new THREE.Mesh(new THREE.BoxGeometry(1.22, 0.14, 1.22), rimMat);
-        basketRim.position.y = 0.88;
-        [[-0.58, 0.3], [0.58, 0.3], [-0.58, -0.3], [0.58, -0.3]].forEach(([sx, sz]) => {
-            const sandbag = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), getMcMaterial(0xfde047, 10));
-            sandbag.position.set(sx, 0.65, sz);
-            grp.add(sandbag);
-        });
-
-        [[-0.46, -0.46], [0.46, -0.46], [-0.46, 0.46], [0.46, 0.46]].forEach(([rx, rz]) => {
-            const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.25, 8), ropeMat);
-            rope.position.set(rx, 1.48, rz);
-            grp.add(rope);
-        });
-        const burnerFlame = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffedd5 }));
-        burnerFlame.position.y = 1.55;
-        const flameGlow = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.65, 12), new THREE.MeshBasicMaterial({ color: 0xf97316 }));
-        flameGlow.position.y = 1.75;
-
-        const tiers = [
-            { rTop: 0.95, rBot: 0.55, h: 0.45, y: 2.20, c: 0x3b82f6 },
-            { rTop: 1.45, rBot: 0.95, h: 0.55, y: 2.70, c: 0x22c55e },
-            { rTop: 1.75, rBot: 1.45, h: 0.65, y: 3.30, c: 0xfacc15 },
-            { rTop: 1.70, rBot: 1.75, h: 0.65, y: 3.95, c: 0xf97316 },
-            { rTop: 1.30, rBot: 1.70, h: 0.55, y: 4.55, c: 0xef4444 },
-            { rTop: 0.50, rBot: 1.30, h: 0.45, y: 5.05, c: 0xec4899 }
-        ];
-        tiers.forEach(t => {
-            const band = new THREE.Mesh(new THREE.CylinderGeometry(t.rTop, t.rBot, t.h, 20), getMcMaterial(t.c, 12));
-            band.position.y = t.y;
-            grp.add(band);
-        });
-        const topCap = new THREE.Mesh(new THREE.SphereGeometry(0.52, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
-        topCap.position.y = 5.25;
-
-        grp.add(basket, basketRim, burnerFlame, flameGlow, topCap);
+        // 🏮 第10課・放天燈尊榮收藏：庭院巨型冉冉升空平溪天燈塔
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.3, 0.4, 16), getMcMaterial(0x78350f, 12)); base.position.y = 0.2;
+        const flame = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 12), new THREE.MeshBasicMaterial({ color: 0xfef08a })); flame.position.y = 1.65;
+        const lanternBody = new THREE.Mesh(new THREE.CylinderGeometry(1.45, 0.95, 2.8, 16), new THREE.MeshLambertMaterial({ color: 0xef4444, emissive: 0xdc2626, emissiveIntensity: 0.45 }));
+        lanternBody.position.y = 3.2;
+        const goldRim = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.07, 10, 20), new THREE.MeshBasicMaterial({ color: 0xfacc15 })); goldRim.rotation.x = Math.PI / 2; goldRim.position.y = 1.8;
+        grp.add(base, flame, lanternBody, goldRim);
         return grp;
     }
     if (fid === 'castle_lux') {
-        const wallMat = getMcMaterial(0xfef3c7, 10), roofMat = getMcMaterial(0x2563eb, 14), goldMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-        const mainKeep = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.2, 1.8), wallMat); mainKeep.position.y = 1.1;
-        const gateArch = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 1.86), getMcMaterial(0x78350f, 10)); gateArch.position.y = 0.5;
-        const mainSpire = new THREE.Mesh(new THREE.ConeGeometry(0.95, 1.6, 12), roofMat); mainSpire.position.y = 3.0;
-        const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.7), goldMat); flagPole.position.y = 3.95;
-        [[-1.1, -0.8], [1.1, -0.8], [-1.1, 0.8], [1.1, 0.8]].forEach(([tx, tz]) => {
-            const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.42, 2.5, 12), wallMat); tower.position.set(tx, 1.25, tz);
-            const roof = new THREE.Mesh(new THREE.ConeGeometry(0.48, 0.95, 12), roofMat); roof.position.set(tx, 2.95, tz);
-            grp.add(tower, roof);
+        // 🏛️ 第9/12課・終極大獎：自由民主紀念博愛殿堂
+        const whiteMat = getMcMaterial(0xf8fafc, 8), goldMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+        const base = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.45, 2.2), whiteMat); base.position.y = 0.225;
+        [[-1.1, 0.8], [-0.4, 0.8], [0.4, 0.8], [1.1, 0.8], [-1.1, -0.8], [1.1, -0.8]].forEach(([cx, cz]) => {
+            const col = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 1.8, 12), whiteMat); col.position.set(cx, 1.35, cz); grp.add(col);
         });
-        grp.add(mainKeep, gateArch, mainSpire, flagPole);
+        const roofBase = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.3, 2.1), whiteMat); roofBase.position.y = 2.4;
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.95, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2), goldMat); dome.position.y = 2.55;
+        grp.add(base, roofBase, dome);
         return grp;
     }
-    return _origBuildFurnitureMesh(fid);
+    // 📚 第12課：室內博愛公益書櫃與救人醫箱 (`shelf_L12`)
+    const shelfMat = getMcMaterial(0x5c1d11, 12);
+    const backPanel = new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.2, 0.12), new THREE.MeshLambertMaterial({ color: 0x2a0e07 })); backPanel.position.set(0, 1.6, -0.36);
+    const leftPanel = new THREE.Mesh(new THREE.BoxGeometry(0.14, 3.2, 0.85), shelfMat); leftPanel.position.set(-1.23, 1.6, 0);
+    const rightPanel = new THREE.Mesh(new THREE.BoxGeometry(0.14, 3.2, 0.85), shelfMat); rightPanel.position.set(1.23, 1.6, 0);
+    const topPanel = new THREE.Mesh(new THREE.BoxGeometry(2.68, 0.14, 0.90), shelfMat); topPanel.position.set(0, 3.16, 0);
+    const div0 = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.10, 0.82), shelfMat); div0.position.set(0, 0.35, 0.02);
+    const div1 = div0.clone(); div1.position.y = 1.1;
+    const div2 = div0.clone(); div2.position.y = 1.8;
+    const div3 = div0.clone(); div3.position.y = 2.5;
+    grp.add(backPanel, leftPanel, rightPanel, topPanel, div0, div1, div2, div3);
+    const medKit = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.45), new THREE.MeshBasicMaterial({ color: 0xffffff })); medKit.position.set(-0.55, 2.76, 0.1);
+    const cross = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.48), new THREE.MeshBasicMaterial({ color: 0xef4444 })); cross.position.set(-0.55, 2.76, 0.1);
+    const globe = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 12), getMcMaterial(0x0ea5e9, 12)); globe.position.set(0.5, 2.8, 0.1);
+    grp.add(medKit, cross, globe);
+    const bookColors = [0xdc2626, 0x2563eb, 0x16a34a, 0xfacc15, 0x9333ea];
+    for (let i = 0; i < 8; i++) {
+        const bMat = getMcMaterial(bookColors[i % bookColors.length], 10);
+        const book = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.52, 0.54), bMat);
+        book.position.set(-0.88 + i * 0.25, 1.42, 0.08);
+        grp.add(book);
+    }
+    return grp;
 };
 
 rebuildPlacedFurnitureMeshes = function() {
@@ -6081,7 +6551,6 @@ rebuildPlacedFurnitureMeshes = function() {
         }
     });
 };
-
 // ============================================================================
 // 🚀 4 合 1 終極優化擴充包 (1.區域音樂切換 2.錯題特訓消除 3.小屋拍照模式 4.教師密碼解鎖)
 // ============================================================================
@@ -6455,7 +6924,239 @@ applyUILanguage = function() {
 
     populateTeleportSelect();
 };
+// ============================================================================
+// 🌟 自由選讀課文模式 ＋ 左側直立進度面板 ＋ 拍照隱藏補丁
+// ============================================================================
 
+// 1. 登島時不再彈出「強制先找主角讀課文」的阻擋視窗
+showStageEntryGuideModal = function(lessonId) {
+    // 改為自由選讀，不阻擋玩家直接找夥伴答題
+};
+
+// 2. 所有 3D 標籤（包含夥伴頭上的 ❓ 與 🧩 句型寶箱）一登島直接顯示，不需先讀完課文
+updateFloatingLabels = function() {
+    const curSpace = gameState.isInsideCabin ? 'indoor' : 'outdoor';
+    floatingLabels.forEach(item => {
+        if (item.space !== curSpace) { item.el.style.display = 'none'; return; }
+        const dist = item.pos.distanceTo(playerMesh.position);
+        if (dist > 52) { item.el.style.display = 'none'; return; }
+        const projected = item.pos.clone().project(camera);
+        if (projected.z > 1) { item.el.style.display = 'none'; return; }
+        const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-(projected.y * 0.5) + 0.5) * window.innerHeight;
+        item.el.style.display = 'block'; item.el.style.left = `${x}px`; item.el.style.top = `${y}px`;
+    });
+};
+
+// 3. 允許玩家直接點擊或走近夥伴回答問題（移除需先讀完課文的限制）
+openSingleNpcQuestion = function(lessonId, qIdx, markerRef = null) {
+    const lesson = LESSONS_DATA.find(l => l.id === lessonId);
+    if (!lesson) return;
+    quizLesson = lesson; quizIndex = qIdx; activeQuizMarkerRef = markerRef;
+    document.getElementById('quiz-modal').classList.remove('hidden');
+    renderQuizQuestion();
+};
+
+// 4. 課文對話視窗：語音跟讀改為「自由加分練習」，下一句按鈕永遠開放可點！
+renderDialogLine = function() {
+    _baseRenderDialogLine();
+    if (!currentLesson) return;
+    const lineKey = `${currentLesson.id}:${currentDialogIdx}`;
+    const savedStars = gameState.shadowStarsByLine[lineKey] || 0;
+    const nextBtn = document.getElementById('btn-next-line');
+    const scoreBadge = document.getElementById('dlg-shadow-score-badge');
+
+    nextBtn.className = 'ac-btn bg-emerald-500 hover:bg-emerald-400 text-white font-black px-5 py-2 rounded-xl text-sm';
+    nextBtn.textContent = (currentDialogIdx === currentLesson.dialogues.length - 1)
+        ? t('✨ 完成課文瀏覽 ▶', '✨ Finish Reading ▶', '✨ 完成课文浏览 ▶')
+        : t('下一句 ▶', 'Next ▶', '下一句 ▶');
+
+    if (scoreBadge) {
+        if (savedStars > 0) {
+            scoreBadge.textContent = t(`本句最高紀錄：${savedStars} 顆星`, `Best: ${savedStars} Stars`, `本句最高纪录：${savedStars} 颗星`);
+            scoreBadge.className = 'text-xs font-black px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400';
+        } else {
+            scoreBadge.textContent = t('🎙️ 自由跟讀加分練習 (選做)', '🎙️ Optional Bonus Reading', '🎙️ 自由跟读加分练习 (选做)');
+            scoreBadge.className = 'text-xs font-black px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300';
+        }
+    }
+};
+
+nextDialogLine = function() {
+    if (!currentLesson) return;
+    if (currentDialogIdx < currentLesson.dialogues.length - 1) {
+        currentDialogIdx++;
+        renderDialogLine();
+        speakCurrentDialogLine();
+    } else {
+        const lid = currentLesson.id;
+        closeDialogModal();
+        gameState.readLessons.add(lid);
+        updateMissionBanner(lid);
+        checkAndUnlockLessonGate(lid);
+        saveGameProgress();
+        if (gameState.completedQuizzes.has(lid)) spawnWanderingSpiritsForLesson(lid);
+        playACSound('gem');
+        showToast(t('✨ 課文讀完囉！可以隨時找島上頭頂有「❓」的夥伴回答問題或點「🧩句型寶箱」！', '✨ Finished reading! Feel free to answer partner quizzes ("❓") or open the Sentence Box ("🧩")!'));
+    }
+};
+
+// 5. 過關條件檢查：移除讀課文的硬性要求（只要完成 1.問題、2.小精靈、3.句型寶箱、4.生字 即可過關！）
+checkAndUnlockLessonGate = function(lessonId) {
+    const lesson = LESSONS_DATA.find(l => l.id === lessonId);
+    if (!lesson) return;
+    const quizDone = gameState.completedQuizzes.has(lesson.id);
+    const vocabDone = lesson.vocab.every(v => gameState.collectedVocab.has(`${lesson.id}:${v.word}`));
+    const puzzleDone = getLessonPuzzleStats(lesson.id).allSolved;
+    const chars = Array.from(lesson.writeChars);
+    const writtenDone = chars.every(ch => gameState.writtenChars.has(`${lesson.id}:${ch}`));
+
+    updateMissionBanner(lessonId);
+    updateGateUnlockVisuals();
+    saveGameProgress();
+
+    if (quizDone && vocabDone && puzzleDone && writtenDone && !gameState.completedLessons.has(lesson.id)) {
+        const rewardOutfit = SHOP_OUTFITS.find(o => o.reqLesson === lesson.id);
+        if (rewardOutfit) gameState.ownedOutfits.add(rewardOutfit.id);
+
+        if (lesson.id === 12) {
+            if (!finalPartyModalShown) {
+                finalPartyModalShown = true;
+                playACSound('fanfare');
+                addExpAndPoints(50, 50);
+                document.getElementById('finale-party-banner').classList.remove('hidden');
+            }
+        } else {
+            gameState.completedLessons.add(lesson.id);
+            if (lesson.id >= gameState.unlockedMaxLesson && lesson.id < 12) gameState.unlockedMaxLesson = lesson.id + 1;
+            playACSound('fanfare');
+            addExpAndPoints(50, 50);
+            updateGateUnlockVisuals();
+            populateTeleportSelect();
+            saveGameProgress();
+            showNewOutfitUnlockModal(lesson.id);
+        }
+    }
+};
+
+// 6. 更新左側直立式任務面板狀態
+updateMissionBanner = function(targetLessonId) {
+    const lid = targetLessonId || Math.min(12, gameState.unlockedMaxLesson);
+    const lesson = LESSONS_DATA.find(l => l.id === lid) || LESSONS_DATA[0];
+    const st = getLessonShadowStats(lesson.id);
+    const hasRead = gameState.readLessons.has(lesson.id) || st.passedLines > 0;
+    const qAnsweredCount = [0, 1, 2].filter(i => gameState.answeredQuizItems.has(`${lesson.id}:${i}`)).length;
+    const gemCount = lesson.vocab.filter(v => gameState.collectedVocab.has(`${lesson.id}:${v.word}`)).length;
+    const pSt = getLessonPuzzleStats(lesson.id);
+    const chars = Array.from(lesson.writeChars);
+    const doneCount = chars.filter(ch => gameState.writtenChars.has(`${lesson.id}:${ch}`)).length;
+
+    const isTask1Active = (qAnsweredCount < 3);
+    const isTask2Active = (qAnsweredCount === 3) && (gemCount < lesson.vocab.length);
+    const isTask4Active = (qAnsweredCount === 3) && (gemCount === lesson.vocab.length) && (doneCount < chars.length);
+
+    const prefixEl = document.getElementById('ui-mission-prefix');
+    if (prefixEl) prefixEl.textContent = t('🎯 本島任務', '🎯 Tasks', '🎯 本岛任务');
+
+    const titleEl = document.getElementById('mission-lesson-title');
+    if (titleEl) titleEl.textContent = gameState.uiLang === 'en' ? `L${lesson.id}` : tc(lesson.title.split(' ')[0]);
+
+    const rEl = document.getElementById('mission-read-status');
+    if (rEl) {
+        rEl.textContent = `📘 ${t('課文', 'Read', '课文')} (${t('自由選讀', 'Optional', '自由选读')})${hasRead ? '✓' : ''}`;
+        rEl.className = `px-2 py-1 rounded-lg text-left truncate cursor-pointer ${hasRead ? 'bg-emerald-100 text-emerald-800' : 'bg-sky-100 text-sky-900 hover:bg-sky-200'}`;
+        rEl.onclick = () => openLessonDialog(lesson.id);
+    }
+
+    const qEl = document.getElementById('mission-quiz-status');
+    if (qEl) {
+        qEl.textContent = `1️⃣❓ ${t('問題', 'Quiz', '问题')} ${qAnsweredCount}/3${qAnsweredCount === 3 ? '✓' : ''}`;
+        qEl.className = `px-2 py-1 rounded-lg text-left truncate ${qAnsweredCount === 3 ? 'bg-emerald-100 text-emerald-800' : (isTask1Active ? 'bg-purple-200 text-purple-950 ring-2 ring-purple-500 animate-pulse' : 'bg-purple-100 text-purple-800')}`;
+    }
+
+    const gEl = document.getElementById('mission-gem-status');
+    if (gEl) {
+        gEl.textContent = `2️⃣🧚 ${t('生詞', 'Vocab', '生词')} ${gemCount}/${lesson.vocab.length}${gemCount === lesson.vocab.length ? '✓' : ''}`;
+        gEl.className = `px-2 py-1 rounded-lg text-left truncate ${gemCount === lesson.vocab.length ? 'bg-emerald-100 text-emerald-800' : (isTask2Active ? 'bg-amber-300 text-amber-950 ring-2 ring-amber-600 animate-pulse' : 'bg-amber-100 text-amber-800')}`;
+    }
+
+    const cEl = document.getElementById('mission-chest-status');
+    if (cEl) {
+        cEl.textContent = `3️⃣🧩 ${t('句型', 'Puzzle', '句型')} ${pSt.solvedCount}/${pSt.totalCount}${pSt.allSolved ? '✓' : ''}`;
+        cEl.className = `px-2 py-1 rounded-lg text-left truncate cursor-pointer ${pSt.allSolved ? 'bg-emerald-100 text-emerald-800' : 'bg-teal-100 text-teal-900 border border-teal-400 hover:bg-teal-200'}`;
+    }
+
+    const wEl = document.getElementById('mission-write-status');
+    if (wEl) {
+        wEl.textContent = `4️⃣🖌️ ${t('生字', 'Chars', '生字')} ${doneCount}/${chars.length}${doneCount === chars.length ? '✓' : ''}`;
+        wEl.className = `px-2 py-1 rounded-lg text-left truncate ${doneCount === chars.length ? 'bg-emerald-100 text-emerald-800' : (isTask4Active ? 'bg-blue-200 text-blue-950 ring-2 ring-blue-600 animate-pulse' : 'bg-blue-100 text-blue-800')}`;
+    }
+
+    document.getElementById('hud-keys').textContent = `${gameState.unlockedMaxLesson}/12 ${t('島', 'Isl', '岛')}`;
+};
+
+// 7. 讓玩家走近夥伴時，不需先讀過課文也能直接觸發問題互動
+const _origCheckProximity = checkProximityInteractions;
+checkProximityInteractions = function() {
+    if (!gameState.isInsideCabin) {
+        let nearestQuizRole = null, minQuizDist = 2.5;
+        quizRoleMarkers.forEach(qm => {
+            const d = Math.hypot(playerMesh.position.x - qm.worldPos.x, playerMesh.position.z - qm.worldPos.z);
+            if (d < minQuizDist) { minQuizDist = d; nearestQuizRole = qm; }
+        });
+        if (nearestQuizRole) {
+            const promptEl = document.getElementById('interaction-prompt');
+            const iconEl = document.getElementById('interaction-icon');
+            const textEl = document.getElementById('interaction-text');
+            const unansweredIdx = nearestQuizRole.qIndices.find(idx => !gameState.answeredQuizItems.has(`${nearestQuizRole.lessonId}:${idx}`));
+            const targetQIdx = unansweredIdx !== undefined ? unansweredIdx : nearestQuizRole.qIndices[0];
+            const allDoneForRole = (unansweredIdx === undefined);
+            const qKey = `${nearestQuizRole.lessonId}:${targetQIdx}`;
+            currentInteractionAction = { type: 'quiz_npc', lessonId: nearestQuizRole.lessonId, qIndex: targetQIdx, markerRef: nearestQuizRole };
+            iconEl.textContent = allDoneForRole ? '✅' : '❓';
+            textEl.textContent = allDoneForRole
+                ? t(`${nearestQuizRole.npcName} 的問題已全數答完 (點此重溫)`, `${nearestQuizRole.npcName}'s Quiz Completed (Review)`)
+                : t(`回答 ${nearestQuizRole.npcName} 的問題 (第 ${targetQIdx + 1}/3 題)`, `Answer ${nearestQuizRole.npcName}'s Question (${targetQIdx + 1}/3)`);
+            promptEl.classList.remove('hidden');
+
+            if (!allDoneForRole && !isAnyModalOpen() && lastAutoQuizKey !== qKey) {
+                lastAutoQuizKey = qKey; mouseWalkTarget = null;
+                openSingleNpcQuestion(nearestQuizRole.lessonId, targetQIdx, nearestQuizRole);
+            }
+            return;
+        }
+    }
+    _origCheckProximity();
+};
+
+// 8. 鳥居進度檢查視窗：將讀課文標示為「自由選讀」
+const _origShowMissingModal2 = showMissingConditionsModal;
+showMissingConditionsModal = function(lessonId, fromWritingComplete = false) {
+    _origShowMissingModal2(lessonId, fromWritingComplete);
+    const lesson = LESSONS_DATA.find(l => l.id === lessonId);
+    if (!lesson) return;
+    const listEl = document.getElementById('mc-modal-list');
+    if (listEl && listEl.firstElementChild) {
+        const hasRead = gameState.readLessons.has(lesson.id);
+        listEl.firstElementChild.className = 'flex items-center justify-between p-2.5 rounded-xl border bg-sky-50 border-sky-300 text-sky-900 cursor-pointer';
+        listEl.firstElementChild.onclick = () => { document.getElementById('missing-conditions-modal').classList.add('hidden'); openLessonDialog(lesson.id); };
+        listEl.firstElementChild.innerHTML = `
+            <span>📘 ${t(`找「${lesson.npcName}」讀課文 (點此打開)`, `Read with ${lesson.npcName} (Click)`)}</span>
+            <span>${hasRead ? '✅ ' + t('已讀過', 'Read') : '💡 ' + t('自由選讀', 'Optional')}</span>
+        `;
+    }
+};
+
+// 9. 拍照模式同步隱藏左側直立式進度面板
+const _origTriggerPhoto = window.triggerPhotoMode;
+window.triggerPhotoMode = function() {
+    const leftMission = document.getElementById('hud-stage-mission');
+    if (leftMission) leftMission.style.opacity = '0';
+    _origTriggerPhoto();
+    setTimeout(() => {
+        if (leftMission) leftMission.style.opacity = '1';
+    }, 4200);
+};
 window.onload = function() {
     try {
         const hasSave = loadGameProgress();
