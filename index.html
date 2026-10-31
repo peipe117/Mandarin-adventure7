@@ -3665,10 +3665,13 @@ function buildFinalTrophyZone() {
     outdoorGroup.add(trophyGroup);
     partyFloatingLabel = createFloatingLabel("🏆 第14島：終點榮耀金盃島 (通過第12課跨海鳥居將開啟全員派對)", new THREE.Vector3(0, 8.2, zEnd), 'outdoor');
 
-    // 🎉 第七冊全體 11 位角色在終點金盃島圍圈跳躍歡呼
+// 🎉 第七冊全體 14 位角色（含華中爸媽、明真爸媽、寶拉、店員與老師）在終點金盃島圍圈跳躍歡呼
     partyGroup = new THREE.Group(); partyGroup.visible = gameState.completedLessons.has(12); outdoorGroup.add(partyGroup);
-    const partyRoles = ['teacher', 'anna', 'lian', 'mingzhen', 'jiajie', 'huazhong', 'huaguo', 'kevin', 'paula', 'dad', 'mom'];
-    const danceRadius = 5.8;
+    const partyRoles = [
+        'teacher', 'anna', 'lian', 'mingzhen', 'jiajie', 'huazhong', 'huaguo',
+        'kevin', 'paula', 'dad', 'mom', 'mingzhen_dad', 'mingzhen_mom', 'clerk'
+    ];
+    const danceRadius = 6.8;
     partyRoles.forEach((role, index) => {
         const angle = (index / partyRoles.length) * Math.PI * 2;
         const x = Math.cos(angle) * danceRadius, z = Math.sin(angle) * danceRadius;
