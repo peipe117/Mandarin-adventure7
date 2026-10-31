@@ -2476,12 +2476,26 @@ if (cfg.mingzhenMomSuit) {
         silverBuckle.position.set(0, 0.72, 0.02);
         group.add(innerShirt, centerLine, collarL, collarR, pocketL, pocketR, belt, silverBuckle);
     }
-    if (cfg.greenGraphicTee) {
-        const patch = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.48, 0.52), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-        patch.position.set(0, 1.2, 0.01);
-        const wave = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.54), getMcMaterial(0x15803d, 10));
-        wave.position.set(0.08, 1.2, 0.01);
-        group.add(patch, wave);
+if (cfg.greenGraphicTee) {
+        if (!window._jiajieTeeTex) {
+            const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 128, 128);
+            ctx.fillStyle = '#15803d';
+            ctx.beginPath();
+            ctx.moveTo(14, 8); ctx.bezierCurveTo(38, 42, 8, 86, 28, 120);
+            ctx.lineTo(46, 120); ctx.bezierCurveTo(26, 86, 56, 42, 32, 8); ctx.closePath(); ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(52, 8); ctx.bezierCurveTo(74, 42, 46, 86, 64, 120);
+            ctx.lineTo(78, 120); ctx.bezierCurveTo(60, 86, 88, 42, 66, 8); ctx.closePath(); ctx.fill();
+            [[88,14],[104,20],[94,34],[108,42],[86,52],[100,62],[112,72],[88,78],[102,88],[90,104],[106,108]].forEach(([px, py]) => {
+                ctx.fillRect(px, py, 11, 11);
+            });
+            window._jiajieTeeTex = new THREE.CanvasTexture(c);
+        }
+        const graphicPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.58), new THREE.MeshBasicMaterial({ map: window._jiajieTeeTex }));
+        graphicPlane.position.set(0, 1.16, 0.26);
+        group.add(graphicPlane);
     }
     if (cfg.orangePolo) {
         const redTrim = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
